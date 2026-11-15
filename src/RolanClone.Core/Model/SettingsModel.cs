@@ -28,6 +28,25 @@ public enum WindowMaterial
     Solid
 }
 
+/// <summary>点击标题栏关闭按钮时的行为。</summary>
+public enum CloseBehavior
+{
+    /// <summary>直接退出程序。</summary>
+    Exit,
+    /// <summary>隐藏到系统托盘，后台继续运行。</summary>
+    MinimizeToTray
+}
+
+/// <summary>界面基础字重。</summary>
+public enum AppFontWeight
+{
+    Light,
+    Regular,
+    Medium,
+    SemiBold,
+    Bold
+}
+
 public enum ShowPosition
 {
     /// <summary>保持上次的位置。</summary>
@@ -98,4 +117,16 @@ public sealed class SettingsModel
 
     /// <summary>便签存储目录；为空时使用程序目录下的 Notes 子目录。</summary>
     public string? NotesDirectory { get; set; }
+
+    /// <summary>点击关闭按钮时的行为，默认最小化到托盘。</summary>
+    public CloseBehavior CloseBehavior { get; set; } = CloseBehavior.MinimizeToTray;
+
+    /// <summary>界面字体族名称；为空时使用默认字体（微软雅黑 UI）。</summary>
+    public string? FontFamily { get; set; }
+
+    /// <summary>界面基准字号（10–18），所有字号按该值等比缩放。</summary>
+    public double FontSize { get; set; } = 12;
+
+    /// <summary>界面基础字重。</summary>
+    public AppFontWeight FontWeight { get; set; } = AppFontWeight.Light;
 }

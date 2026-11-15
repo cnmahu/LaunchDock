@@ -40,6 +40,7 @@ public partial class LauncherWindow : Window
     private bool _suppressSnap;
     private bool _suppressHide;
     private bool _ctrlDown;
+    private bool _forceExit;
 
     public LauncherWindow() : this(ConfigStore.Load())
     {
@@ -163,6 +164,7 @@ public partial class LauncherWindow : Window
     public void ApplySettings()
     {
         Topmost = _config.Settings.TopMost;
+        SettingsViewModel.ApplyFont(_config.Settings);
         _viewModel.ApplySettings(_config.Settings);
         ApplyLayout();
         ApplyMaterial();
@@ -1323,7 +1325,14 @@ public partial class LauncherWindow : Window
 
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
-    private void OnExitClick(object? sender, RoutedEventArgs e) => Close();
+    private void OnExitClick(object? sender, RoutedEventArgs e) => ExitApp();
+
+    /// <summary>真正退出应用（绕过“最小化到托盘”的关闭设置）。</summary>
+    public void ExitApp()
+    {
+        _forceExit = true;
+        Close();
+    }
 
     private void SaveConfig()
     {
@@ -1349,6 +1358,14 @@ public partial class LauncherWindow : Window
 
     private void OnClosing(object? sender, WindowClosingEventArgs e)
     {
+        // 后台驻留模式：拦截关闭并隐藏到托盘，通过托盘菜单或菜单“退出”真正退出
+        if (!_forceExit && _config.Settings.CloseBehavior == CloseBehavior.MinimizeToTray)
+        {
+            e.Cancel = true;
+            HidePanel();
+            return;
+        }
+
         _viewModel.Notes.SaveNow();
         _config.Window.Left = Position.X;
         _config.Window.Top = Position.Y;

@@ -50,8 +50,10 @@ dotnet run --project src/RolanClone.App
 发布单文件（可选）：
 
 ```powershell
-dotnet publish src/RolanClone.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
+dotnet publish src/RolanClone.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
+
+> 注意：`IncludeNativeLibrariesForSelfExtract` 必须开启，否则 SkiaSharp 原生库不会随单文件包解出，启动时会抛 `DllNotFoundException`。
 
 ## 数据位置
 

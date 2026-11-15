@@ -42,7 +42,7 @@
                     IsVisible="{Binding !HasIcon}">
               <TextBlock HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         FontSize="15"
+                         FontSize="{DynamicResource Fs15}"
                          FontWeight="SemiBold"
                          Foreground="White"
                          Text="{Binding Initials}" />
@@ -55,7 +55,7 @@
           <TextBlock Margin="2,0"
                      HorizontalAlignment="{Binding LabelAlignment}"
                      VerticalAlignment="Center"
-                     FontSize="12"
+                     FontSize="{DynamicResource Fs12}"
                      Foreground="{DynamicResource TextPrimary}"
                      Text="{Binding Name}"
                      TextAlignment="Center"
@@ -75,7 +75,7 @@
       <Setter Property="MinHeight" Value="40" />
       <Setter Property="Margin" Value="0" />
       <Setter Property="Padding" Value="12,0" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
       <Setter Property="Template">
@@ -126,13 +126,13 @@
         <TextBlock Grid.Column="0"
                    Margin="16,0,0,0"
                    VerticalAlignment="Center"
-                   FontSize="12.5"
+                   FontSize="{DynamicResource Fs12.5}"
                    Foreground="{DynamicResource TextSecondary}"
                    Text="应用库" />
         <TextBlock Grid.Column="1"
                    Margin="12,0"
                    VerticalAlignment="Center"
-                   FontSize="11.5"
+                   FontSize="{DynamicResource Fs11.5}"
                    Foreground="{DynamicResource TextSecondary}"
                    Text="双击条目添加到启动板，或直接拖拽"
                    TextTrimming="CharacterEllipsis" />

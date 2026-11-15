@@ -22,6 +22,7 @@ public partial class App : Application
         {
             var config = ConfigStore.Load();
             SettingsViewModel.ApplyTheme(config.Settings.Theme);
+            SettingsViewModel.ApplyFont(config.Settings);
             desktop.MainWindow = new LauncherWindow(config);
         }
 
@@ -32,7 +33,7 @@ public partial class App : Application
 
     private void OnTraySettingsClick(object? sender, EventArgs e) => GetLauncher()?.OpenSettings();
 
-    private void OnTrayExitClick(object? sender, EventArgs e) => GetLauncher()?.Close();
+    private void OnTrayExitClick(object? sender, EventArgs e) => GetLauncher()?.ExitApp();
 
     private LauncherWindow? GetLauncher() =>
         (ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow as LauncherWindow;

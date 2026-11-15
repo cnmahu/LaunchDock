@@ -17,7 +17,7 @@
     <Style Selector="TabItem">
       <Setter Property="Width" Value="180" />
       <Setter Property="MinHeight" Value="38" />
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
       <Setter Property="Background" Value="Transparent" />
       <Setter Property="Padding" Value="14,8" />
@@ -63,7 +63,7 @@
       <Setter Property="BorderThickness" Value="1" />
       <Setter Property="CornerRadius" Value="6" />
       <Setter Property="Padding" Value="16,5" />
-      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs12}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -71,18 +71,18 @@
       <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
     <Style Selector="TextBlock.rowTitle">
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
       <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
     <Style Selector="TextBlock.rowHint">
-      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs11}" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
       <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style Selector="TextBlock.rowIcon">
       <Setter Property="Width" Value="24" />
-      <Setter Property="FontSize" Value="15" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs15}" />
       <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
       <Setter Property="VerticalAlignment" Value="Center" />
@@ -111,7 +111,7 @@
         <TextBlock Grid.Column="0"
                    Margin="16,0,0,0"
                    VerticalAlignment="Center"
-                   FontSize="13"
+                   FontSize="{DynamicResource Fs13}"
                    FontWeight="SemiBold"
                    Foreground="{DynamicResource TextPrimary}"
                    Text="设置" />
@@ -174,6 +174,86 @@
                                   IsChecked="{Binding StartHidden}"
                                   OnContent="On"
                                   OffContent="Off" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE711;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="关闭按钮行为" />
+                    <TextBlock Classes="rowHint" Text="点击关闭按钮时最小化到托盘后台运行，或直接退出程序" />
+                  </StackPanel>
+                  <ComboBox Grid.Column="2"
+                            Width="180"
+                            VerticalAlignment="Center"
+                            SelectedIndex="{Binding CloseBehaviorIndex}">
+                    <ComboBoxItem Content="最小化到托盘" />
+                    <ComboBoxItem Content="直接退出" />
+                  </ComboBox>
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8D2;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="界面字体" />
+                      <TextBlock Classes="rowHint" Text="选择系统已安装的字体，立即应用到整个界面" />
+                    </StackPanel>
+                    <ComboBox Grid.Column="2"
+                              Width="220"
+                              VerticalAlignment="Center"
+                              ItemsSource="{Binding FontChoices}"
+                              SelectedIndex="{Binding FontFamilyIndex}" />
+                  </Grid>
+
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8E9;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="字体大小" />
+                      <TextBlock Classes="rowHint" Text="所有界面文字按该值等比缩放" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="8"
+                                VerticalAlignment="Center">
+                      <Slider Width="160"
+                              Minimum="10"
+                              Maximum="18"
+                              TickFrequency="1"
+                              IsSnapToTickEnabled="True"
+                              Value="{Binding FontSize}" />
+                      <TextBlock Width="28"
+                                 VerticalAlignment="Center"
+                                 FontSize="{DynamicResource Fs12}"
+                                 Foreground="{DynamicResource TextSecondary}"
+                                 Text="{Binding FontSizeLabel}" />
+                    </StackPanel>
+                  </Grid>
+
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8D9;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="字体粗细" />
+                      <TextBlock Classes="rowHint" Text="常规文字使用的基础字重" />
+                    </StackPanel>
+                    <ComboBox Grid.Column="2"
+                              Width="180"
+                              VerticalAlignment="Center"
+                              SelectedIndex="{Binding FontWeightIndex}">
+                      <ComboBoxItem Content="细" />
+                      <ComboBoxItem Content="常规" />
+                      <ComboBoxItem Content="中等" />
+                      <ComboBoxItem Content="半粗" />
+                      <ComboBoxItem Content="粗" />
+                    </ComboBox>
                   </Grid>
                 </StackPanel>
               </Border>
@@ -282,7 +362,7 @@
                               Value="{Binding Opacity}" />
                       <TextBlock Width="40"
                                  VerticalAlignment="Center"
-                                 FontSize="12"
+                                 FontSize="{DynamicResource Fs12}"
                                  Foreground="{DynamicResource TextSecondary}"
                                  Text="{Binding OpacityLabel}" />
                     </StackPanel>
@@ -310,7 +390,7 @@
                               Value="{Binding IconSizePx}" />
                       <TextBlock Width="44"
                                  VerticalAlignment="Center"
-                                 FontSize="12"
+                                 FontSize="{DynamicResource Fs12}"
                                  Foreground="{DynamicResource TextSecondary}"
                                  Text="{Binding IconSizeLabel}" />
                     </StackPanel>
@@ -336,7 +416,7 @@
                               Value="{Binding IconSpacing}" />
                       <TextBlock Width="44"
                                  VerticalAlignment="Center"
-                                 FontSize="12"
+                                 FontSize="{DynamicResource Fs12}"
                                  Foreground="{DynamicResource TextSecondary}"
                                  Text="{Binding IconSpacingLabel}" />
                     </StackPanel>
@@ -512,7 +592,7 @@
                   <Border Classes="subrow">
                     <Grid ColumnDefinitions="*,Auto">
                       <TextBlock VerticalAlignment="Center"
-                                 FontSize="12.5"
+                                 FontSize="{DynamicResource Fs12.5}"
                                  Foreground="{DynamicResource TextPrimary}"
                                  Text="快捷键是" />
                       <TextBox x:Name="HotkeyBox"
@@ -530,7 +610,7 @@
 
                   <TextBlock x:Name="HotkeyStatus"
                              Margin="60,0,16,10"
-                             FontSize="11.5"
+                             FontSize="{DynamicResource Fs11.5}"
                              Foreground="{DynamicResource TextSecondary}" />
 
                   <Border Classes="separator" />
@@ -557,7 +637,7 @@
 
                   <TextBlock x:Name="ShortcutStatus"
                              Margin="60,0,16,10"
-                             FontSize="11.5"
+                             FontSize="{DynamicResource Fs11.5}"
                              Foreground="{DynamicResource TextSecondary}" />
 
                   <Border Classes="separator" />
@@ -622,7 +702,7 @@
                   <Border Classes="subrow">
                     <Grid ColumnDefinitions="*,Auto">
                       <TextBlock VerticalAlignment="Center"
-                                 FontSize="12.5"
+                                 FontSize="{DynamicResource Fs12.5}"
                                  Foreground="{DynamicResource TextPrimary}"
                                  Text="按住 Ctrl 键时阻止自动收起" />
                       <ToggleSwitch Grid.Column="1"
@@ -708,7 +788,7 @@
 
               <Border Classes="card">
                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
-                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE90F;" />
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="{DynamicResource Fs16}" Text="&#xE90F;" />
                   <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
                     <TextBlock Classes="rowTitle" Text="修复图标" />
                     <TextBlock Classes="rowHint" Text="清除图标缓存并重新提取所有图标" />
@@ -723,7 +803,7 @@
 
               <Border Classes="card">
                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
-                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE8CB;" />
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="{DynamicResource Fs16}" Text="&#xE8CB;" />
                   <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
                     <TextBlock Classes="rowTitle" Text="按名称排序全部项" />
                     <TextBlock Classes="rowHint" Text="按显示名称重新排列每个分组内的条目" />
@@ -738,7 +818,7 @@
 
               <Border Classes="card">
                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
-                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE8C8;" />
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="{DynamicResource Fs16}" Text="&#xE8C8;" />
                   <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
                     <TextBlock Classes="rowTitle" Text="清理全部重复项" />
                     <TextBlock Classes="rowHint" Text="同一分组内目标相同的条目只保留一个" />
@@ -753,7 +833,7 @@
 
               <Border Classes="card">
                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
-                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE7BA;" />
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="{DynamicResource Fs16}" Text="&#xE7BA;" />
                   <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
                     <TextBlock Classes="rowTitle" Text="清理全部失效项" />
                     <TextBlock Classes="rowHint" Text="移除目标文件或文件夹已不存在的条目" />
@@ -768,7 +848,7 @@
 
               <Border Classes="card">
                 <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
-                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE71D;" />
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="{DynamicResource Fs16}" Text="&#xE71D;" />
                   <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
                     <TextBlock Classes="rowTitle" Text="清理空标签" />
                     <TextBlock Classes="rowHint" Text="移除没有任何条目的空分组（至少保留一个）" />
@@ -782,7 +862,7 @@
               </Border>
 
               <TextBlock Margin="4,4,0,0"
-                         FontSize="12"
+                         FontSize="{DynamicResource Fs12}"
                          Foreground="{DynamicResource TextSecondary}"
                          Text="{Binding MaintenanceStatus}" />
             </StackPanel>

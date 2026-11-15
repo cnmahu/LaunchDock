@@ -11,7 +11,7 @@
   <Grid Margin="20" RowDefinitions="Auto,*,Auto">
 
     <TextBlock x:Name="MessageText"
-               FontSize="13"
+               FontSize="{DynamicResource Fs13}"
                Foreground="{DynamicResource TextPrimary}"
                TextWrapping="Wrap" />
 
@@ -19,7 +19,7 @@
              Grid.Row="1"
              Margin="0,12"
              VerticalContentAlignment="Center"
-             FontSize="13"
+             FontSize="{DynamicResource Fs13}"
              KeyDown="OnInputKeyDown" />
 
     <StackPanel Grid.Row="2"

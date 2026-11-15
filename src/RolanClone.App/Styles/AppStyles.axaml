@@ -1,11 +1,12 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- 中文 UI 标准字体：细字重对齐 WinUI 的视觉粗细，避免文字显粗显突兀；
-       选中态/标题显式设 SemiBold，层级不受影响 -->
+  <!-- 全局字体：字体族 / 字重 / 基准字号均由设置里的 AppFontFamily、AppFontWeight、FsBase 资源驱动；
+       各处字号使用 FsXX token，可随“字体大小”设置等比缩放 -->
   <Style Selector="Window">
-    <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
-    <Setter Property="FontWeight" Value="Light" />
+    <Setter Property="FontFamily" Value="{DynamicResource AppFontFamily}" />
+    <Setter Property="FontWeight" Value="{DynamicResource AppFontWeight}" />
+    <Setter Property="FontSize" Value="{DynamicResource FsBase}" />
   </Style>
 
   <Style Selector="Button.chrome">
@@ -28,7 +29,7 @@
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Padding" Value="12,0" />
-    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="Template">
       <ControlTemplate>
@@ -86,7 +87,7 @@
   <!-- 暖棕药丸开关：设置页统一使用，仅覆盖 Fluent 模板的颜色资源 -->
   <Style Selector="ToggleSwitch.compact">
     <Setter Property="MinWidth" Value="0" />
-    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs12}" />
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="OnContent" Value="On" />
     <Setter Property="OffContent" Value="Off" />
@@ -108,24 +109,24 @@
   </Style>
 
   <Style Selector="TextBlock.cardTitle">
-    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
   </Style>
 
   <Style Selector="TextBlock.pageTitle">
-    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs18}" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
   </Style>
 
   <Style Selector="TextBlock.section">
-    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs11}" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="Margin" Value="0,10,0,4" />
   </Style>
 
   <Style Selector="TextBlock.hint">
-    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs11.5}" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
@@ -137,7 +138,7 @@
   </Style>
 
   <Style Selector="MenuItem">
-    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
     <Setter Property="MinHeight" Value="30" />
   </Style>
 

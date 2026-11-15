@@ -12,7 +12,7 @@
   <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
 
     <StackPanel Grid.Row="0" Spacing="6">
-      <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" Text="类型" />
+      <TextBlock FontSize="{DynamicResource Fs12}" Foreground="{DynamicResource TextSecondary}" Text="类型" />
       <ComboBox x:Name="TypeBox" SelectedIndex="0" SelectionChanged="OnTypeChanged">
         <ComboBoxItem Content="程序 / 快捷方式" />
         <ComboBoxItem Content="文件" />
@@ -24,12 +24,12 @@
     </StackPanel>
 
     <StackPanel Grid.Row="1" Margin="0,12,0,0" Spacing="6">
-      <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" Text="显示名称" />
+      <TextBlock FontSize="{DynamicResource Fs12}" Foreground="{DynamicResource TextSecondary}" Text="显示名称" />
       <TextBox x:Name="NameBox" Watermark="留空则使用文件名" />
     </StackPanel>
 
     <StackPanel x:Name="TargetPanel" Grid.Row="2" Margin="0,12,0,0" Spacing="6">
-      <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" Text="目标路径 / URL / 命令" />
+      <TextBlock FontSize="{DynamicResource Fs12}" Foreground="{DynamicResource TextSecondary}" Text="目标路径 / URL / 命令" />
       <Grid ColumnDefinitions="*,Auto">
         <TextBox x:Name="TargetBox" />
         <Button x:Name="BrowseButton"
@@ -45,7 +45,7 @@
                 Margin="0,12,0,0"
                 Spacing="6"
                 IsVisible="False">
-      <TextBlock FontSize="12" Foreground="{DynamicResource TextSecondary}" Text="内置动作" />
+      <TextBlock FontSize="{DynamicResource Fs12}" Foreground="{DynamicResource TextSecondary}" Text="内置动作" />
       <ComboBox x:Name="ActionBox" SelectedIndex="0" />
     </StackPanel>
 

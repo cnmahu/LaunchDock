@@ -59,7 +59,7 @@
                     IsVisible="{Binding !HasIcon}">
               <TextBlock HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         FontSize="15"
+                         FontSize="{DynamicResource Fs15}"
                          FontWeight="SemiBold"
                          Foreground="White"
                          Text="{Binding Initials}" />
@@ -72,7 +72,7 @@
           <TextBlock Margin="2,0"
                      HorizontalAlignment="{Binding LabelAlignment}"
                      VerticalAlignment="Center"
-                     FontSize="12"
+                     FontSize="{DynamicResource Fs12}"
                      Foreground="{DynamicResource TextPrimary}"
                      Text="{Binding Name}"
                      TextAlignment="Center"
@@ -117,7 +117,7 @@
                     IsVisible="{Binding !HasIcon}">
               <TextBlock HorizontalAlignment="Center"
                          VerticalAlignment="Center"
-                         FontSize="12"
+                         FontSize="{DynamicResource Fs12}"
                          FontWeight="SemiBold"
                          Foreground="White"
                          Text="{Binding Initials}" />
@@ -130,7 +130,7 @@
           <TextBlock Grid.Column="1"
                      Margin="10,0,0,0"
                      VerticalAlignment="Center"
-                     FontSize="13"
+                     FontSize="{DynamicResource Fs13}"
                      Foreground="{DynamicResource TextPrimary}"
                      Text="{Binding Name}"
                      TextTrimming="CharacterEllipsis" />
@@ -157,7 +157,7 @@
         <TextBlock Grid.Column="0"
                    Margin="16,0,0,0"
                    VerticalAlignment="Center"
-                   FontSize="12.5"
+                   FontSize="{DynamicResource Fs12.5}"
                    Foreground="{DynamicResource TextSecondary}"
                    Text="启坞 LaunchDock" />
 
@@ -225,7 +225,7 @@
             <TextBox x:Name="SearchBox"
                      Margin="10,0"
                      VerticalContentAlignment="Center"
-                     FontSize="13"
+                     FontSize="{DynamicResource Fs13}"
                      Background="Transparent"
                      BorderThickness="0"
                      Text="{Binding SearchText}"
@@ -297,7 +297,7 @@
                   ToolTip.Tip="便签"
                   Click="OnNotesClick">
             <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                       FontSize="15"
+                       FontSize="{DynamicResource Fs15}"
                        Text="&#xE70B;" />
           </Button>
         </Grid>
@@ -349,7 +349,7 @@
             <Grid RowDefinitions="Auto,*,Auto" Margin="0,0,4,0">
               <Grid ColumnDefinitions="*,Auto" Margin="8,2,0,6">
                 <TextBlock VerticalAlignment="Center"
-                           FontSize="13"
+                           FontSize="{DynamicResource Fs13}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimary}"
                            Text="便签" />
@@ -372,7 +372,7 @@
                        SelectedItem="{Binding Notes.SelectedNote}">
                 <ListBox.ItemTemplate>
                   <DataTemplate>
-                    <TextBlock FontSize="13"
+                    <TextBlock FontSize="{DynamicResource Fs13}"
                                Foreground="{DynamicResource TextPrimary}"
                                Text="{Binding Title}"
                                TextTrimming="CharacterEllipsis" />
@@ -382,7 +382,7 @@
 
               <TextBlock Grid.Row="2"
                          Margin="8,4,0,0"
-                         FontSize="11"
+                         FontSize="{DynamicResource Fs11}"
                          Foreground="{DynamicResource TextSecondary}"
                          Text="{Binding Notes.Status}"
                          TextTrimming="CharacterEllipsis" />
@@ -398,7 +398,7 @@
                        BorderThickness="0"
                        Background="Transparent"
                        Padding="14,12"
-                       FontSize="13.5"
+                       FontSize="{DynamicResource Fs13.5}"
                        AcceptsReturn="True"
                        TextWrapping="Wrap"
                        VerticalContentAlignment="Top"
@@ -418,12 +418,12 @@
                       VerticalAlignment="Center"
                       Spacing="8">
             <TextBlock HorizontalAlignment="Center"
-                       FontSize="14"
+                       FontSize="{DynamicResource Fs14}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}"
                        Text="还没有分组" />
             <TextBlock HorizontalAlignment="Center"
-                       FontSize="12"
+                       FontSize="{DynamicResource Fs12}"
                        Foreground="{DynamicResource TextSecondary}"
                        Text="点击上方 ＋ 新建分组，或把应用拖进来" />
           </StackPanel>
@@ -441,12 +441,12 @@
                     VerticalAlignment="Center"
                     Spacing="12">
           <TextBlock HorizontalAlignment="Center"
-                     FontSize="15"
+                     FontSize="{DynamicResource Fs15}"
                      FontWeight="SemiBold"
                      Foreground="{DynamicResource TextPrimary}"
                      Text="启动板已锁定" />
           <TextBox x:Name="LockPasswordBox"
-                   FontSize="13"
+                   FontSize="{DynamicResource Fs13}"
                    PasswordChar="●"
                    Watermark="输入密码解锁"
                    KeyDown="OnLockPasswordKeyDown" />
@@ -456,7 +456,7 @@
                   Click="OnUnlockClick" />
           <TextBlock x:Name="LockErrorText"
                      HorizontalAlignment="Center"
-                     FontSize="12"
+                     FontSize="{DynamicResource Fs12}"
                      Foreground="#FFE5484D" />
         </StackPanel>
       </Border>

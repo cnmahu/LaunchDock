@@ -15,7 +15,7 @@
 
   <Window.Styles>
     <Style Selector="TextBlock.aboutBody">
-      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontSize" Value="{DynamicResource Fs13}" />
       <Setter Property="LineHeight" Value="23" />
       <Setter Property="TextWrapping" Value="Wrap" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -32,7 +32,7 @@
         <TextBlock Grid.Column="0"
                    Margin="16,0,0,0"
                    VerticalAlignment="Center"
-                   FontSize="13"
+                   FontSize="{DynamicResource Fs13}"
                    FontWeight="SemiBold"
                    Foreground="{DynamicResource TextPrimary}"
                    Text="关于" />
@@ -52,11 +52,11 @@
         <StackPanel Margin="28,10,28,26" Spacing="14">
 
           <StackPanel Spacing="4">
-            <TextBlock FontSize="24"
+            <TextBlock FontSize="{DynamicResource Fs24}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}"
                        Text="启坞 LaunchDock" />
-            <TextBlock FontSize="13"
+            <TextBlock FontSize="{DynamicResource Fs13}"
                        Foreground="{DynamicResource TextSecondary}"
                        Text="你的桌面启动坞" />
           </StackPanel>
@@ -80,7 +80,7 @@
 
           <TextBlock x:Name="VersionText"
                      Margin="0,10,0,0"
-                     FontSize="11.5"
+                     FontSize="{DynamicResource Fs11.5}"
                      Foreground="{DynamicResource TextSecondary}" />
 
         </StackPanel>

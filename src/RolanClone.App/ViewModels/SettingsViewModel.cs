@@ -1,16 +1,38 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Avalonia;
+using Avalonia.Media;
 using Avalonia.Styling;
 using RolanClone.Core.Model;
 using RolanClone.Core.Security;
 using RolanClone.Core.Storage;
+using RolanClone.Windows.Fonts;
 using RolanClone.Windows.Startup;
 
 namespace RolanClone.App.ViewModels;
 
 public sealed class SettingsViewModel : ViewModelBase
 {
+    public const string DefaultFontFamily = "Microsoft YaHei UI";
+    public const double MinFontSize = 10;
+    public const double MaxFontSize = 18;
+    public const double DefaultFontSize = 12;
+
+    /// <summary>字号 token 表：key 为资源名，value 为缩放前的原始字号。</summary>
+    private static readonly (string Key, double Base)[] FontSizeTokens =
+    {
+        ("FsBase", DefaultFontSize),
+        ("Fs11", 11), ("Fs11.5", 11.5), ("Fs12", 12), ("Fs12.5", 12.5),
+        ("Fs13", 13), ("Fs13.5", 13.5), ("Fs14", 14), ("Fs15", 15),
+        ("Fs16", 16), ("Fs18", 18), ("Fs24", 24)
+    };
+
+    private static List<string>? _installedFonts;
+
+    /// <summary>系统已安装字体（GDI 枚举，进程内缓存一次）。</summary>
+    public static List<string> InstalledFonts =>
+        _installedFonts ??= SystemFontLister.GetInstalled();
+
     private readonly SettingsModel _settings;
     private readonly Action _onChanged;
     private readonly Func<MaintenanceAction, string>? _runMaintenance;
@@ -23,6 +45,10 @@ public sealed class SettingsViewModel : ViewModelBase
         _onChanged = onChanged;
         _runMaintenance = runMaintenance;
     }
+
+    /// <summary>字体下拉框选项：首项为默认字体，其后为系统字体。</summary>
+    public IReadOnlyList<string> FontChoices { get; } =
+        new[] { $"默认（{DefaultFontFamily}）" }.Concat(InstalledFonts).ToArray();
 
     public string MaintenanceStatus
     {
@@ -138,6 +164,40 @@ public sealed class SettingsViewModel : ViewModelBase
             AppTheme.Dark => ThemeVariant.Dark,
             _ => ThemeVariant.Default
         };
+    }
+
+    /// <summary>
+    /// 把字体设置写入应用级资源（AppFontFamily / AppFontWeight / FsXX），
+    /// 所有通过 DynamicResource 引用这些资源的界面文字随之更新。
+    /// </summary>
+    public static void ApplyFont(SettingsModel settings)
+    {
+        if (Application.Current is null)
+        {
+            return;
+        }
+
+        var resources = Application.Current.Resources;
+
+        resources["AppFontFamily"] = string.IsNullOrWhiteSpace(settings.FontFamily)
+            ? new FontFamily(DefaultFontFamily)
+            // 指定字体缺失时回退到默认字体，避免整界面掉到系统兜底字体
+            : new FontFamily($"{settings.FontFamily}, {DefaultFontFamily}");
+
+        resources["AppFontWeight"] = settings.FontWeight switch
+        {
+            AppFontWeight.Regular => FontWeight.Normal,
+            AppFontWeight.Medium => FontWeight.Medium,
+            AppFontWeight.SemiBold => FontWeight.SemiBold,
+            AppFontWeight.Bold => FontWeight.Bold,
+            _ => FontWeight.Light
+        };
+
+        var scale = Math.Clamp(settings.FontSize, MinFontSize, MaxFontSize) / DefaultFontSize;
+        foreach (var (key, baseSize) in FontSizeTokens)
+        {
+            resources[key] = Math.Round(baseSize * scale, 1);
+        }
     }
 
     public int LayoutIndex
@@ -264,6 +324,90 @@ public sealed class SettingsViewModel : ViewModelBase
     {
         get => _settings.StartHidden;
         set => SetBool(() => _settings.StartHidden, v => _settings.StartHidden = v, value);
+    }
+
+    public int CloseBehaviorIndex
+    {
+        get => _settings.CloseBehavior == CloseBehavior.Exit ? 1 : 0;
+        set
+        {
+            var target = value == 1 ? CloseBehavior.Exit : CloseBehavior.MinimizeToTray;
+            if (_settings.CloseBehavior == target)
+            {
+                return;
+            }
+
+            _settings.CloseBehavior = target;
+            OnPropertyChanged();
+            _onChanged();
+        }
+    }
+
+    public int FontFamilyIndex
+    {
+        get
+        {
+            var family = _settings.FontFamily;
+            if (string.IsNullOrWhiteSpace(family))
+            {
+                return 0;
+            }
+
+            var index = InstalledFonts.FindIndex(
+                f => string.Equals(f, family, StringComparison.OrdinalIgnoreCase));
+            return index < 0 ? 0 : index + 1;
+        }
+        set
+        {
+            var family = value <= 0 || value - 1 >= InstalledFonts.Count
+                ? null
+                : InstalledFonts[value - 1];
+            if (string.Equals(family, _settings.FontFamily, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            _settings.FontFamily = family;
+            OnPropertyChanged();
+            _onChanged();
+        }
+    }
+
+    public double FontSize
+    {
+        get => _settings.FontSize;
+        set
+        {
+            var clamped = Math.Clamp(Math.Round(value), MinFontSize, MaxFontSize);
+            if (Math.Abs(_settings.FontSize - clamped) < 0.01)
+            {
+                return;
+            }
+
+            _settings.FontSize = clamped;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(FontSizeLabel));
+            _onChanged();
+        }
+    }
+
+    public string FontSizeLabel => $"{_settings.FontSize:0}";
+
+    public int FontWeightIndex
+    {
+        get => (int)_settings.FontWeight;
+        set
+        {
+            var target = (AppFontWeight)Math.Clamp(value, 0, 4);
+            if (_settings.FontWeight == target)
+            {
+                return;
+            }
+
+            _settings.FontWeight = target;
+            OnPropertyChanged();
+            _onChanged();
+        }
     }
 
     public bool AutoStart
