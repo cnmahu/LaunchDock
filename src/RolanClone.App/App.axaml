@@ -85,7 +85,7 @@
 
   <Application.Styles>
     <FluentTheme />
-    <StyleInclude Source="avares://RolanClone/Styles/AppStyles.axaml" />
+    <StyleInclude Source="avares://LaunchDock/Styles/AppStyles.axaml" />
   </Application.Styles>
 
 </Application>

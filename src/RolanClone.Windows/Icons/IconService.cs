@@ -11,7 +11,7 @@ public static class IconService
 {
     private static readonly string CacheDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "RolanClone", "icons");
+        "LaunchDock", "icons");
 
     // .msc 这类文件的图标由内嵌图标处理程序提供，必须在 STA 线程提取，
     // 线程池线程是 MTA，直接提取只会得到通用的“空白文档”图标。

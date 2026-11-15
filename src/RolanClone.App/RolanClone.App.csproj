@@ -10,7 +10,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <RootNamespace>RolanClone.App</RootNamespace>
-    <AssemblyName>RolanClone</AssemblyName>
+    <AssemblyName>LaunchDock</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

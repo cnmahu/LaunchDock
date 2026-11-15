@@ -16,8 +16,25 @@ public static class ConfigStore
         Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
     };
 
-    public static string ConfigDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "RolanClone");
+    public static string ConfigDirectory { get; } = ResolveConfigDirectory();
+
+    private static string ResolveConfigDirectory()
+    {
+        var root = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        var newPath = Path.Combine(root, "LaunchDock");
+
+        // 旧版本使用 RolanClone 目录，首次运行时整体迁移（配置/便签一并保留）
+        if (!Directory.Exists(newPath))
+        {
+            var oldPath = Path.Combine(root, "RolanClone");
+            if (Directory.Exists(oldPath))
+            {
+                try { Directory.Move(oldPath, newPath); } catch { }
+            }
+        }
+
+        return newPath;
+    }
 
     public static string ConfigPath { get; } = Path.Combine(ConfigDirectory, "config.json");
 

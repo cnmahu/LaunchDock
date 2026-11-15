@@ -23,7 +23,7 @@ public sealed class GlobalHotkey : IDisposable
         _thread = new Thread(() => Run(modifiers, virtualKey))
         {
             IsBackground = true,
-            Name = "RolanClone.GlobalHotkey"
+            Name = "LaunchDock.GlobalHotkey"
         };
         _thread.Start();
         _ready.Wait(1500);

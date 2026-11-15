@@ -14,7 +14,7 @@ public static class ShortcutService
     {
         get
         {
-            var exe = Path.Combine(AppContext.BaseDirectory, "RolanClone.exe");
+            var exe = Path.Combine(AppContext.BaseDirectory, "LaunchDock.exe");
             return File.Exists(exe) ? exe : Environment.ProcessPath ?? exe;
         }
     }

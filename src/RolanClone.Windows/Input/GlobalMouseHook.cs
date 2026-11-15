@@ -26,7 +26,7 @@ public sealed class GlobalMouseHook : IDisposable
         _thread = new Thread(Run)
         {
             IsBackground = true,
-            Name = "RolanClone.GlobalMouseHook"
+            Name = "LaunchDock.GlobalMouseHook"
         };
         _thread.Start();
         _ready.Wait(1500);

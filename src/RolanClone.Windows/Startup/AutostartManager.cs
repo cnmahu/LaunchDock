@@ -6,7 +6,8 @@ namespace RolanClone.Windows.Startup;
 public static class AutostartManager
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string ValueName = "RolanClone";
+    private const string ValueName = "LaunchDock";
+    private const string LegacyValueName = "RolanClone";
 
     public static bool IsEnabled()
     {
@@ -30,6 +31,9 @@ public static class AutostartManager
             {
                 return;
             }
+
+            // 清理旧版本遗留的自启项（指向已不存在的 RolanClone.exe）
+            key.DeleteValue(LegacyValueName, throwOnMissingValue: false);
 
             if (enabled)
             {
