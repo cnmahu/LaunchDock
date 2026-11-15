@@ -16,6 +16,7 @@ public partial class SettingsWindow : Window
 {
     private readonly SettingsViewModel _viewModel;
     private readonly Func<string, bool> _tryChangeHotkey;
+    private string? _hotkeyBeforeRecording;
 
     public SettingsWindow() : this(new SettingsModel(), () => { }, _ => false)
     {
@@ -119,16 +120,101 @@ public partial class SettingsWindow : Window
 
     private void OnHotkeyKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter)
+        e.Handled = true;
+
+        // 用物理键判断：不受中文输入法（IME）拦截影响
+        var key = Enum.TryParse<Key>(e.PhysicalKey.ToString(), out var physical) && physical != Key.None
+            ? physical
+            : e.Key;
+
+        // Esc：取消本次录制，回滚到进入录制前的热键
+        if (key == Key.Escape)
+        {
+            var restore = _hotkeyBeforeRecording;
+            if (!string.IsNullOrEmpty(restore)
+                && restore != _viewModel.Hotkey
+                && _tryChangeHotkey(restore))
+            {
+                _viewModel.Hotkey = restore;
+            }
+            HotkeyBox.Text = _viewModel.Hotkey;
+            HotkeyStatus.Text = string.Empty;
+            return;
+        }
+
+        // 只按了修饰键：等待主键
+        if (key is Key.LeftCtrl or Key.RightCtrl or Key.LeftAlt or Key.RightAlt
+            or Key.LeftShift or Key.RightShift or Key.LWin or Key.RWin or Key.System)
         {
             return;
         }
 
+        var keyName = key switch
+        {
+            >= Key.A and <= Key.Z => ((char)('A' + (key - Key.A))).ToString(),
+            >= Key.D0 and <= Key.D9 => ((char)('0' + (key - Key.D0))).ToString(),
+            >= Key.F1 and <= Key.F24 => $"F{1 + (key - Key.F1)}",
+            Key.Space => "Space",
+            Key.Enter => "Enter",
+            Key.Tab => "Tab",
+            Key.OemTilde => "`",
+            Key.OemMinus => "-",
+            Key.OemPlus => "=",
+            Key.OemOpenBrackets => "[",
+            Key.OemCloseBrackets => "]",
+            Key.OemSemicolon => ";",
+            Key.OemQuotes => "'",
+            Key.OemComma => ",",
+            Key.OemPeriod => ".",
+            Key.OemQuestion => "/",
+            Key.OemBackslash => "\\",
+            _ => null
+        };
+
+        if (keyName is null)
+        {
+            HotkeyStatus.Text = "不支持的按键：请使用 字母 / 数字 / 符号 / F1-F24 / Space / Enter / Tab";
+            return;
+        }
+
+        var gesture = string.Empty;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+        {
+            gesture += "Ctrl+";
+        }
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+        {
+            gesture += "Alt+";
+        }
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+        {
+            gesture += "Shift+";
+        }
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Meta))
+        {
+            gesture += "Win+";
+        }
+
+        HotkeyBox.Text = gesture + keyName;
         ApplyHotkey();
+    }
+
+    private void OnHotkeyGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        _hotkeyBeforeRecording = _viewModel.Hotkey;
+    }
+
+    private void OnHotkeyTextInput(object? sender, TextInputEventArgs e)
+    {
+        // 录制模式：吞掉所有文本输入（含 IME 组合输入），防止字符混入热键框
         e.Handled = true;
     }
 
-    private void OnHotkeyLostFocus(object? sender, RoutedEventArgs e) => ApplyHotkey();
+    private void OnHotkeyLostFocus(object? sender, RoutedEventArgs e)
+    {
+        _hotkeyBeforeRecording = null;
+        ApplyHotkey();
+    }
 
     private void ApplyHotkey()
     {
@@ -136,7 +222,7 @@ public partial class SettingsWindow : Window
         if (gesture.Length == 0)
         {
             HotkeyBox.Text = _viewModel.Hotkey;
-            HotkeyStatus.Text = "请输入热键组合";
+            HotkeyStatus.Text = "请按下热键组合";
             return;
         }
 
@@ -147,7 +233,7 @@ public partial class SettingsWindow : Window
 
         if (!GlobalHotkey.IsValid(gesture))
         {
-            HotkeyStatus.Text = "格式不正确，示例：Alt+Space、Ctrl+Alt+K";
+            HotkeyStatus.Text = "需至少一个修饰键（Ctrl/Alt/Shift/Win）加一个按键，如 Alt+Space";
             return;
         }
 

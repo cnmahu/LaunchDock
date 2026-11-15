@@ -69,6 +69,22 @@ public sealed class GlobalHotkey : IDisposable
         }
     }
 
+    /// <summary>符号键（主键盘区）到虚拟键码的映射，用于识别 Ctrl+` 这类热键。</summary>
+    private static readonly Dictionary<string, uint> SymbolKeys = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["`"] = 0xC0, // VK_OEM_3（中文键盘的 · 键）
+        ["-"] = 0xBD, // VK_OEM_MINUS
+        ["="] = 0xBB, // VK_OEM_PLUS
+        ["["] = 0xDB, // VK_OEM_4
+        ["]"] = 0xDD, // VK_OEM_6
+        [";"] = 0xBA, // VK_OEM_1
+        ["'"] = 0xDE, // VK_OEM_7
+        [","] = 0xBC, // VK_OEM_COMMA
+        ["."] = 0xBE, // VK_OEM_PERIOD
+        ["/"] = 0xBF, // VK_OEM_2
+        ["\\"] = 0xDC  // VK_OEM_5
+    };
+
     /// <summary>校验热键格式：必须包含至少一个修饰键和一个可识别的按键。</summary>
     public static bool IsValid(string gesture)
     {
@@ -102,6 +118,10 @@ public sealed class GlobalHotkey : IDisposable
                              && (part[0] is 'F' or 'f')
                              && int.TryParse(part[1..], out var functionKey)
                              && functionKey is >= 1 and <= 24)
+                    {
+                        keyFound = true;
+                    }
+                    else if (SymbolKeys.ContainsKey(part))
                     {
                         keyFound = true;
                     }
@@ -163,6 +183,10 @@ public sealed class GlobalHotkey : IDisposable
                              && functionKey is >= 1 and <= 24)
                     {
                         virtualKey = (uint)(0x6F + functionKey);
+                    }
+                    else if (SymbolKeys.TryGetValue(part, out var symbolVk))
+                    {
+                        virtualKey = symbolVk;
                     }
 
                     break;

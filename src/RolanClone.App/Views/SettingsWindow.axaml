@@ -518,9 +518,12 @@
                       <TextBox x:Name="HotkeyBox"
                                Grid.Column="1"
                                Width="180"
+                               Watermark="点击后按下组合键"
                                IsEnabled="{Binding EnableHotkey}"
                                Text="{Binding Hotkey, Mode=OneWay}"
+                               GotFocus="OnHotkeyGotFocus"
                                KeyDown="OnHotkeyKeyDown"
+                               TextInput="OnHotkeyTextInput"
                                LostFocus="OnHotkeyLostFocus" />
                     </Grid>
                   </Border>
