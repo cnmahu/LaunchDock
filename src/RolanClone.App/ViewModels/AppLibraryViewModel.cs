@@ -39,10 +39,12 @@ public static class AppLibraryDrag
 
 public sealed class AppLibraryViewModel
 {
+    // 应用库的图标尺寸与间距是固定的，不跟随启动板的外观设置。
+    private const double LibraryIconSize = 40;
+    private const double LibraryIconSpacing = 16;
+
     public AppLibraryViewModel(AppConfig config)
     {
-        Settings = config.Settings;
-
         LoadStandard();
         LoadSystemTools();
         LoadWebApps(config);
@@ -51,8 +53,6 @@ public sealed class AppLibraryViewModel
 
         _ = LoadAsync();
     }
-
-    private SettingsModel Settings { get; }
 
     public ObservableCollection<ItemViewModel> StandardFolders { get; } = new();
     public ObservableCollection<ItemViewModel> SystemTools { get; } = new();
@@ -65,16 +65,16 @@ public sealed class AppLibraryViewModel
         StandardFolders.Concat(SystemTools).Concat(DesktopApps)
             .Concat(StoreApps).Concat(WebApps).Concat(Extensions);
 
-    /// <summary>应用库的图标大小、间距、名称位置跟随启动板设置。</summary>
+    /// <summary>应用库统一使用固定的小图标与固定间距。</summary>
     public void ApplyAppearance()
     {
         foreach (var item in AllItems())
         {
             item.ApplyAppearance(
-                Settings.IconSizePx,
-                Settings.LabelPosition != LabelPosition.None,
-                Settings.LabelPosition == LabelPosition.Right,
-                Settings.IconSpacing);
+                LibraryIconSize,
+                showLabel: true,
+                labelOnRight: false,
+                LibraryIconSpacing);
         }
     }
 

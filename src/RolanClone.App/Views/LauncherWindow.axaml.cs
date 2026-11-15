@@ -139,7 +139,7 @@ public partial class LauncherWindow : Window
         _viewModel.ApplySettings(_config.Settings);
         ApplyLayout();
         ApplyMaterial();
-        _libraryWindow?.ApplyAppearance();
+        _libraryWindow?.ApplyWindowMaterial();
 
         // 便签目录可能被修改，打开时重新加载
         if (_viewModel.Notes.IsOpen)
@@ -917,8 +917,8 @@ public partial class LauncherWindow : Window
 
         var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
         var area = screen?.WorkingArea ?? new PixelRect(0, 0, 1920, 1080);
-        var x = Math.Clamp(Position.X + 60, area.X, Math.Max(area.X, area.Right - 780));
-        var y = Math.Clamp(Position.Y + 60, area.Y, Math.Max(area.Y, area.Bottom - 560));
+        var x = Math.Clamp(Position.X + 60, area.X, Math.Max(area.X, area.Right - 720));
+        var y = Math.Clamp(Position.Y + 60, area.Y, Math.Max(area.Y, area.Bottom - 580));
         library.Position = new PixelPoint(x, y);
 
         _libraryWindow = library;

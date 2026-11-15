@@ -104,4 +104,15 @@
     <Setter Property="MinHeight" Value="30" />
   </Style>
 
+  <!-- 菜单浮层：字号与内边距跟随面板排版 -->
+  <Style Selector="MenuFlyoutPresenter">
+    <Setter Property="MinWidth" Value="188" />
+    <Setter Property="Padding" Value="0,4" />
+  </Style>
+
+  <Style Selector="MenuItem">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="MinHeight" Value="30" />
+  </Style>
+
 </Styles>

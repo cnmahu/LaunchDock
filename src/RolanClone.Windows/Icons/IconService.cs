@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -12,8 +13,10 @@ public static class IconService
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "RolanClone", "icons");
 
-    // 应用库可能一次请求数百个图标，限制同时进行的 Shell 提取数量。
-    private static readonly SemaphoreSlim ExtractionGate = new(4, 4);
+    // .msc 这类文件的图标由内嵌图标处理程序提供，必须在 STA 线程提取，
+    // 线程池线程是 MTA，直接提取只会得到通用的“空白文档”图标。
+    private static readonly BlockingCollection<ExtractionRequest> Requests = new();
+    private static readonly Thread[] Workers = StartWorkers();
 
     /// <summary>清空磁盘图标缓存，下次读取时重新从 Shell 提取。</summary>
     public static void ClearCache()
@@ -57,7 +60,7 @@ public static class IconService
         }
 
         var key = Convert.ToHexString(SHA1.HashData(
-            Encoding.UTF8.GetBytes($"{resolved.ToLowerInvariant()}|{stamp}|256|v2"))).ToLowerInvariant();
+            Encoding.UTF8.GetBytes($"{resolved.ToLowerInvariant()}|{stamp}|256|v3"))).ToLowerInvariant();
 
         var pngPath = Path.Combine(CacheDirectory, key + ".png");
         if (File.Exists(pngPath))
@@ -65,20 +68,7 @@ public static class IconService
             return pngPath;
         }
 
-        byte[]? data;
-        ExtractionGate.Wait();
-        try
-        {
-            data = IconExtractor.ExtractPng(resolved, 256);
-        }
-        catch
-        {
-            data = null;
-        }
-        finally
-        {
-            ExtractionGate.Release();
-        }
+        var data = ExtractOnSta(resolved, 256);
 
         if (data is null)
         {
@@ -142,6 +132,75 @@ public static class IconService
         }
 
         return null;
+    }
+
+    private static Thread[] StartWorkers()
+    {
+        var workers = new Thread[2];
+        for (var index = 0; index < workers.Length; index++)
+        {
+            var worker = new Thread(ProcessRequests)
+            {
+                IsBackground = true,
+                Name = $"IconExtractionSTA{index}"
+            };
+            worker.SetApartmentState(ApartmentState.STA);
+            worker.Start();
+            workers[index] = worker;
+        }
+
+        return workers;
+    }
+
+    private static void ProcessRequests()
+    {
+        foreach (var request in Requests.GetConsumingEnumerable())
+        {
+            byte[]? data;
+            try
+            {
+                data = IconExtractor.ExtractPng(request.Path, request.Size);
+            }
+            catch
+            {
+                data = null;
+            }
+
+            request.Complete(data);
+        }
+    }
+
+    /// <summary>Shell 图标统一在 STA 线程提取，调用方线程会等待结果。</summary>
+    private static byte[]? ExtractOnSta(string path, int size)
+    {
+        if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
+        {
+            return IconExtractor.ExtractPng(path, size);
+        }
+
+        using var completed = new ManualResetEventSlim();
+        byte[]? result = null;
+        Requests.Add(new ExtractionRequest(path, size, data =>
+        {
+            result = data;
+            completed.Set();
+        }));
+        completed.Wait();
+        return result;
+    }
+
+    private sealed class ExtractionRequest
+    {
+        public ExtractionRequest(string path, int size, Action<byte[]?> complete)
+        {
+            Path = path;
+            Size = size;
+            Complete = complete;
+        }
+
+        public string Path { get; }
+        public int Size { get; }
+        public Action<byte[]?> Complete { get; }
     }
 }
 

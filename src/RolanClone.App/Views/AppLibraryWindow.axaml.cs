@@ -2,13 +2,17 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
+using Avalonia.Styling;
 using RolanClone.App.ViewModels;
 using RolanClone.Core.Model;
+using RolanClone.Windows;
 
 namespace RolanClone.App.Views;
 
 public partial class AppLibraryWindow : Window
 {
+    private readonly AppConfig _config;
     private readonly AppLibraryViewModel _viewModel;
     private ItemViewModel? _dragCandidate;
     private Point _dragStart;
@@ -19,15 +23,27 @@ public partial class AppLibraryWindow : Window
 
     public AppLibraryWindow(AppConfig config)
     {
+        _config = config;
         InitializeComponent();
         _viewModel = new AppLibraryViewModel(config);
         DataContext = _viewModel;
+        ApplyMaterial();
 
-        Activated += (_, _) => _viewModel.ApplyAppearance();
+        Opened += OnOpened;
+        Activated += (_, _) => ApplyMaterial();
     }
 
-    /// <summary>设置变化时由启动板调用，保持两边图标大小与间距一致。</summary>
-    public void ApplyAppearance() => _viewModel.ApplyAppearance();
+    private void OnOpened(object? sender, EventArgs e)
+    {
+        var handle = TryGetPlatformHandle()?.Handle ?? IntPtr.Zero;
+        if (handle != IntPtr.Zero)
+        {
+            WindowFrame.Apply(handle, IsDarkTheme());
+        }
+    }
+
+    /// <summary>材质与不透明度跟随启动板设置；库内图标尺寸与间距固定，不受启动板影响。</summary>
+    public void ApplyWindowMaterial() => ApplyMaterial();
 
     /// <summary>维护页修复图标后刷新库内图标。</summary>
     public void RefreshIcons() => _viewModel.RefreshIcons();
@@ -35,7 +51,49 @@ public partial class AppLibraryWindow : Window
     /// <summary>双击条目时由启动板接住并加入当前分组。</summary>
     public event Action<ItemModel>? ItemActivated;
 
-    private void OnCloseTipClick(object? sender, RoutedEventArgs e) => TipBar.IsVisible = false;
+    private void ApplyMaterial()
+    {
+        var settings = _config.Settings;
+        var dark = IsDarkTheme();
+
+        TransparencyLevelHint = settings.Material switch
+        {
+            WindowMaterial.Mica => new[]
+            {
+                WindowTransparencyLevel.Mica,
+                WindowTransparencyLevel.AcrylicBlur,
+                WindowTransparencyLevel.Transparent
+            },
+            WindowMaterial.Acrylic => new[]
+            {
+                WindowTransparencyLevel.AcrylicBlur,
+                WindowTransparencyLevel.Transparent
+            },
+            _ => new[] { WindowTransparencyLevel.Transparent }
+        };
+
+        var baseAlpha = settings.Material == WindowMaterial.Solid ? 1.0 : dark ? 0.88 : 0.72;
+        var alpha = (byte)Math.Clamp((int)Math.Round(255 * baseAlpha * settings.Opacity), 40, 255);
+        var baseColor = dark ? Color.FromRgb(24, 24, 24) : Color.FromRgb(255, 255, 255);
+        Background = new SolidColorBrush(Color.FromArgb(alpha, baseColor.R, baseColor.G, baseColor.B));
+    }
+
+    private bool IsDarkTheme()
+    {
+        var requested = Application.Current?.RequestedThemeVariant;
+        return requested == ThemeVariant.Dark
+               || (requested != ThemeVariant.Light && ActualThemeVariant == ThemeVariant.Dark);
+    }
+
+    private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+        {
+            BeginMoveDrag(e);
+        }
+    }
+
+    private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 
     private void OnTilePointerPressed(object? sender, PointerPressedEventArgs e)
     {

@@ -16,9 +16,10 @@ public static class AppLibraryService
             Folder("桌面", "shell:Desktop"),
             Folder("下载", "shell:Downloads"),
             Folder("文档", "shell:Personal"),
-            Folder("图片", "shell:MyPictures"),
-            Folder("音乐", "shell:MyMusic"),
-            Folder("视频", "shell:MyVideos"),
+            // 这三个是带空格的规范别名，不带空格时 Shell 解析不到图标
+            Folder("图片", "shell:My Pictures"),
+            Folder("音乐", "shell:My Music"),
+            Folder("视频", "shell:My Video"),
             Folder("网络", "shell:NetworkPlacesFolder"),
             Folder("网络连接", "shell:::{7007ACC7-3202-11D1-AAD2-00805FC1270E}"),
             Folder("打印机", "shell:::{2227A280-3AEA-1069-A2DE-08002B30309D}"),

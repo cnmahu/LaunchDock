@@ -32,6 +32,21 @@
           <SolidColorBrush x:Key="SearchBackground" Color="#1AFFFFFF" />
           <SolidColorBrush x:Key="SearchBorder" Color="#26000000" />
           <SolidColorBrush x:Key="NavSelected" Color="#F2E4DE" />
+
+          <!-- 菜单浮层：与面板同一套颜色 -->
+          <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#FFFFFFFF" />
+          <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#1A000000" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#12000000" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#1C000000" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="#FFB3B3B3" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForeground" Color="#FF6B6B6B" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPointerOver" Color="#FF4A4A4A" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPressed" Color="#FF4A4A4A" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundDisabled" Color="#FFB3B3B3" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="TextPrimary" Color="#FFF3F3F3" />
@@ -45,10 +60,26 @@
           <SolidColorBrush x:Key="SearchBackground" Color="#22FFFFFF" />
           <SolidColorBrush x:Key="SearchBorder" Color="#33FFFFFF" />
           <SolidColorBrush x:Key="NavSelected" Color="#3A2A24" />
+
+          <!-- 菜单浮层：与面板同一套颜色 -->
+          <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#FF262626" />
+          <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#22FFFFFF" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#FFF3F3F3" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#FFF3F3F3" />
+          <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#FFF3F3F3" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="#FF6B6B6B" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForeground" Color="#FFA9A9A9" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPointerOver" Color="#FFC4C4C4" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPressed" Color="#FFC4C4C4" />
+          <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundDisabled" Color="#FF6B6B6B" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
       <SolidColorBrush x:Key="Accent" Color="#FF2F6FEB" />
+      <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>
 
