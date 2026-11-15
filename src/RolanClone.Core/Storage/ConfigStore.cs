@@ -27,15 +27,15 @@ public static class ConfigStore
         {
             if (!File.Exists(ConfigPath))
             {
-                var seed = SampleData.CreateDefault();
-                Save(seed);
-                return seed;
+                var fresh = new AppConfig();
+                Save(fresh);
+                return fresh;
             }
 
             var config = JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(ConfigPath), Options);
-            if (config is null || config.Tabs.Count == 0)
+            if (config is null)
             {
-                throw new InvalidDataException("配置为空或缺少分组");
+                throw new InvalidDataException("配置无法解析");
             }
 
             return config;
@@ -43,9 +43,9 @@ public static class ConfigStore
         catch
         {
             TryBackupBrokenFile();
-            var seed = SampleData.CreateDefault();
-            Save(seed);
-            return seed;
+            var fresh = new AppConfig();
+            Save(fresh);
+            return fresh;
         }
     }
 

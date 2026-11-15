@@ -23,6 +23,8 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
             Tabs.Add(new TabViewModel(config.Tabs[i], i));
         }
 
+        Tabs.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasTabs));
+
         foreach (var tab in Tabs.Where(tab => tab.IsLiveFolder))
         {
             RefreshLiveFolder(tab);
@@ -36,6 +38,9 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
     public AppConfig Config { get; }
     public NotesViewModel Notes { get; }
     public ObservableCollection<TabViewModel> Tabs { get; } = new();
+
+    /// <summary>是否已有分组；首次启动时没有任何分组，界面显示空状态提示。</summary>
+    public bool HasTabs => Tabs.Count > 0;
 
     /// <summary>网格实际展示的条目：普通状态下是当前分组，搜索状态下是跨分组结果。</summary>
     public ObservableCollection<ItemViewModel> VisibleItems { get; } = new();
@@ -324,6 +329,11 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
 
     public void AddItem(ItemModel model)
     {
+        if (SelectedTab is null)
+        {
+            AddTab();
+        }
+
         if (SelectedTab is null || SelectedTab.Model.Kind != TabKind.Normal)
         {
             return;

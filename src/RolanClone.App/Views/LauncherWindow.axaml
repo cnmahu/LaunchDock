@@ -411,6 +411,24 @@
           </Grid>
         </Grid>
 
+        <!-- 首次启动：没有任何分组时的空状态 -->
+        <Panel Grid.Row="2" IsVisible="{Binding !Notes.IsOpen}" IsHitTestVisible="False">
+          <StackPanel IsVisible="{Binding !HasTabs}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Spacing="8">
+            <TextBlock HorizontalAlignment="Center"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}"
+                       Text="还没有分组" />
+            <TextBlock HorizontalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{DynamicResource TextSecondary}"
+                       Text="点击上方 ＋ 新建分组，或把应用拖进来" />
+          </StackPanel>
+        </Panel>
+
       </Grid>
 
       <!-- 锁定遮罩 -->
