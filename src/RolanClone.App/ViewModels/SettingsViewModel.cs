@@ -29,9 +29,65 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private static List<string>? _installedFonts;
 
-    /// <summary>系统已安装字体（GDI 枚举，进程内缓存一次）。</summary>
-    public static List<string> InstalledFonts =>
-        _installedFonts ??= SystemFontLister.GetInstalled();
+    /// <summary>系统已安装字体（仅保留 Avalonia/Skia 可按名匹配的字体，进程内缓存一次）。</summary>
+    public static List<string> InstalledFonts => _installedFonts ??= LoadInstalledFonts();
+
+    private static List<string> LoadInstalledFonts()
+    {
+        var gdiFonts = SystemFontLister.GetInstalled();
+        try
+        {
+            // Skia 暴露的字体族集合即“可按名称匹配”的集合；
+            // GDI 独有的族（如按字重拆分的“等线 Light”）在 Avalonia 里无法命中，直接过滤掉
+            var skiaFamilies = SkiaSharp.SKFontManager.Default.FontFamilies;
+            return gdiFonts
+                .Where(n => skiaFamilies.Contains(n, StringComparer.OrdinalIgnoreCase))
+                .OrderBy(n => n, StringComparer.CurrentCulture)
+                .ToList();
+        }
+        catch
+        {
+            return gdiFonts.OrderBy(n => n, StringComparer.CurrentCulture).ToList();
+        }
+    }
+
+    /// <summary>
+    /// 构造 FontFamily 字符串。
+    /// Avalonia 对组合字体的匹配要求“解析结果名包含请求名”，而本地化字体名（如“宋体”）
+    /// 与 Skia 报告的字体名（"SimSun"）不一致会导致匹配失败回退默认字体；
+    /// 这里把两种名称都放进回退链，任意语言环境的报告形式都能命中。
+    /// </summary>
+    private static string BuildFontFamilyString(string? requested)
+    {
+        if (string.IsNullOrWhiteSpace(requested))
+        {
+            return DefaultFontFamily;
+        }
+
+        var names = new List<string> { requested };
+        try
+        {
+            var skiaFamilies = SkiaSharp.SKFontManager.Default.FontFamilies;
+            if (skiaFamilies.Contains(requested, StringComparer.OrdinalIgnoreCase))
+            {
+                using var typeface = SkiaSharp.SKFontManager.Default.MatchFamily(
+                    requested, SkiaSharp.SKFontStyle.Normal);
+                var reportedName = typeface?.FamilyName;
+                if (!string.IsNullOrEmpty(reportedName) &&
+                    !names.Contains(reportedName, StringComparer.OrdinalIgnoreCase))
+                {
+                    names.Add(reportedName);
+                }
+            }
+        }
+        catch
+        {
+            // Skia 探测失败时仅使用原始名称，交由回退链兜底
+        }
+
+        names.Add(DefaultFontFamily);
+        return string.Join(", ", names);
+    }
 
     private readonly SettingsModel _settings;
     private readonly Action _onChanged;
@@ -179,10 +235,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
         var resources = Application.Current.Resources;
 
-        resources["AppFontFamily"] = string.IsNullOrWhiteSpace(settings.FontFamily)
-            ? new FontFamily(DefaultFontFamily)
-            // 指定字体缺失时回退到默认字体，避免整界面掉到系统兜底字体
-            : new FontFamily($"{settings.FontFamily}, {DefaultFontFamily}");
+        resources["AppFontFamily"] = new FontFamily(BuildFontFamilyString(settings.FontFamily));
 
         resources["AppFontWeight"] = settings.FontWeight switch
         {
