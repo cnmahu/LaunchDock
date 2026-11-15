@@ -21,8 +21,8 @@
     <ResourceDictionary>
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Light">
-          <SolidColorBrush x:Key="TextPrimary" Color="#FF1F1F1F" />
-          <SolidColorBrush x:Key="TextSecondary" Color="#FF6B6B6B" />
+          <SolidColorBrush x:Key="TextPrimary" Color="#FF423C37" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#FF8A8178" />
           <SolidColorBrush x:Key="Divider" Color="#14000000" />
           <SolidColorBrush x:Key="PanelBackground" Color="#B8FFFFFF" />
           <SolidColorBrush x:Key="WindowBackground" Color="#FFFBF7F5" />
@@ -37,11 +37,11 @@
           <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#FFFFFFFF" />
           <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#1A000000" />
           <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
-          <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#FF423C37" />
           <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#12000000" />
-          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#FF423C37" />
           <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#1C000000" />
-          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#FF423C37" />
           <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="#FFB3B3B3" />
           <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForeground" Color="#FF6B6B6B" />
           <SolidColorBrush x:Key="MenuFlyoutItemKeyboardAcceleratorTextForegroundPointerOver" Color="#FF4A4A4A" />
@@ -78,7 +78,7 @@
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
 
-      <SolidColorBrush x:Key="Accent" Color="#FF2F6FEB" />
+      <SolidColorBrush x:Key="Accent" Color="#FF8A6A5C" />
       <CornerRadius x:Key="OverlayCornerRadius">10</CornerRadius>
     </ResourceDictionary>
   </Application.Resources>

@@ -56,6 +56,15 @@ public partial class LauncherWindow : Window
         ApplyLayout();
         ApplyMaterial();
 
+        // 云母是否真正生效要在窗口创建后才知道，降级到亚克力时需要补回底色
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == ActualTransparencyLevelProperty)
+            {
+                UpdateBackground();
+            }
+        };
+
         Width = Math.Max(MinWidth, config.Window.Width);
         Height = Math.Max(MinHeight, config.Window.Height);
         Topmost = config.Settings.TopMost;
@@ -106,10 +115,6 @@ public partial class LauncherWindow : Window
     private void ApplyMaterial()
     {
         var settings = _config.Settings;
-        var requested = Application.Current?.RequestedThemeVariant;
-        var dark = requested == ThemeVariant.Dark
-                   || (requested != ThemeVariant.Light && ActualThemeVariant == ThemeVariant.Dark);
-        var solid = settings.Material == WindowMaterial.Solid;
 
         TransparencyLevelHint = settings.Material switch
         {
@@ -127,6 +132,28 @@ public partial class LauncherWindow : Window
             _ => new[] { WindowTransparencyLevel.Transparent }
         };
 
+        UpdateBackground();
+    }
+
+    /// <summary>
+    /// 云母由 DWM 直接绘制在窗口背景上，背景必须透明才能透出（色调跟随壁纸）；
+    /// 亚克力 / 纯色模式才叠加底色，不透明度滑块也只对这两种模式生效。
+    /// </summary>
+    private void UpdateBackground()
+    {
+        var settings = _config.Settings;
+        var requested = Application.Current?.RequestedThemeVariant;
+        var dark = requested == ThemeVariant.Dark
+                   || (requested != ThemeVariant.Light && ActualThemeVariant == ThemeVariant.Dark);
+
+        if (settings.Material == WindowMaterial.Mica
+            && ActualTransparencyLevel == WindowTransparencyLevel.Mica)
+        {
+            Background = Brushes.Transparent;
+            return;
+        }
+
+        var solid = settings.Material == WindowMaterial.Solid;
         var baseAlpha = solid ? 1.0 : dark ? 0.88 : 0.72;
         var alpha = (byte)Math.Clamp((int)Math.Round(255 * baseAlpha * settings.Opacity), 40, 255);
         var baseColor = dark ? Color.FromRgb(24, 24, 24) : Color.FromRgb(255, 255, 255);

@@ -15,7 +15,7 @@
 
   <Window.Styles>
     <Style Selector="TabItem">
-      <Setter Property="Width" Value="170" />
+      <Setter Property="Width" Value="180" />
       <Setter Property="MinHeight" Value="38" />
       <Setter Property="FontSize" Value="13" />
       <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
@@ -26,11 +26,21 @@
         <ControlTemplate>
           <Border Background="{TemplateBinding Background}"
                   CornerRadius="8"
-                  Padding="{TemplateBinding Padding}"
                   Margin="0,1">
-            <ContentPresenter Content="{TemplateBinding Header}"
-                              HorizontalAlignment="Left"
-                              VerticalAlignment="Center" />
+            <Grid ColumnDefinitions="Auto,*">
+              <Border Name="Indicator"
+                      Width="3"
+                      Height="16"
+                      CornerRadius="1.5"
+                      VerticalAlignment="Center"
+                      Background="{DynamicResource Accent}"
+                      IsVisible="False" />
+              <ContentPresenter Grid.Column="1"
+                                Content="{TemplateBinding Header}"
+                                Padding="{TemplateBinding Padding}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
+            </Grid>
           </Border>
         </ControlTemplate>
       </Setter>
@@ -43,6 +53,9 @@
       <Setter Property="Background" Value="{DynamicResource NavSelected}" />
       <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
       <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TabItem:selected /template/ Border#Indicator">
+      <Setter Property="IsVisible" Value="True" />
     </Style>
     <Style Selector="Button.action">
       <Setter Property="Background" Value="{DynamicResource CardBackground}" />
@@ -86,11 +99,6 @@
       <Setter Property="CornerRadius" Value="6" />
       <Setter Property="Background" Value="{DynamicResource SearchBackground}" />
     </Style>
-    <Style Selector="ToggleSwitch.compact">
-      <Setter Property="MinWidth" Value="0" />
-      <Setter Property="FontSize" Value="12" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
   </Window.Styles>
 
   <Border CornerRadius="10" ClipToBounds="True">
@@ -121,62 +129,112 @@
 
       <TabControl Grid.Row="1" TabStripPlacement="Left" Margin="10,4,16,14">
 
-        <TabItem Header="概要">
+        <!-- ═══ 常规 ═══ -->
+        <TabItem Header="常规">
           <ScrollViewer>
-            <StackPanel Margin="16,6" Spacing="6">
-              <TextBlock Classes="section" Text="应用" />
-              <TextBlock FontSize="20" FontWeight="SemiBold" Text="启坞 LaunchDock" />
-              <TextBlock FontSize="12"
-                         Foreground="{DynamicResource TextSecondary}"
-                         Text="{Binding VersionText}" />
-              <Button Margin="0,8,0,0"
-                      HorizontalAlignment="Left"
-                      Content="关于启坞"
-                      Click="OnAboutClick" />
+            <StackPanel Margin="16,10,16,16" Spacing="12">
+              <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="常规" />
 
-              <TextBlock Classes="section" Text="配置文件" />
-              <TextBlock FontSize="12"
-                         Foreground="{DynamicResource TextSecondary}"
-                         TextWrapping="Wrap"
-                         Text="{Binding ConfigPath}" />
-              <Button Margin="0,8,0,0"
-                      HorizontalAlignment="Left"
-                      Content="打开配置目录"
-                      Click="OnOpenConfigFolderClick" />
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE946;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="启坞 LaunchDock" />
+                    <TextBlock Classes="rowHint" Text="{Binding VersionText}" />
+                  </StackPanel>
+                  <Button Grid.Column="2"
+                          Classes="action"
+                          Content="关于启坞"
+                          Click="OnAboutClick" />
+                </Grid>
+              </Border>
 
-              <TextBlock Classes="section" Text="便签" />
-              <TextBlock FontSize="12"
-                         Foreground="{DynamicResource TextSecondary}"
-                         TextWrapping="Wrap"
-                         Text="{Binding NotesDirectoryPath}" />
-              <StackPanel Margin="0,8,0,0" Orientation="Horizontal" Spacing="8">
-                <Button Content="更改目录" Click="OnChangeNotesDirectoryClick" />
-                <Button Content="打开便签目录" Click="OnOpenNotesDirectoryClick" />
-                <Button Content="恢复默认"
-                        IsEnabled="{Binding HasCustomNotesDirectory}"
-                        Click="OnResetNotesDirectoryClick" />
-              </StackPanel>
+              <Border Classes="card">
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE7E8;" />
+                    <TextBlock Grid.Column="1" Classes="rowTitle" Margin="12,0" Text="开机自动启动" />
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding AutoStart}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
 
-              <TextBlock Classes="section" Text="快捷键" />
-              <TextBlock Classes="hint" Text="Alt+Space 显示 / 隐藏面板；Ctrl+F 搜索；Esc 关闭搜索；右键分组标签可重命名或删除。" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8D4;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="启动时隐藏窗口" />
+                      <TextBlock Classes="rowHint" Text="仅在后台运行，用快捷键唤出" />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding StartHidden}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8B7;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="配置文件" />
+                    <TextBlock Classes="rowHint" Text="{Binding ConfigPath}" />
+                  </StackPanel>
+                  <Button Grid.Column="2"
+                          Classes="action"
+                          Content="打开配置目录"
+                          Click="OnOpenConfigFolderClick" />
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE70B;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="便签目录" />
+                    <TextBlock Classes="rowHint" Text="{Binding NotesDirectoryPath}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2"
+                              Orientation="Horizontal"
+                              Spacing="6"
+                              VerticalAlignment="Center">
+                    <Button Classes="action" Content="更改目录" Click="OnChangeNotesDirectoryClick" />
+                    <Button Classes="action" Content="打开目录" Click="OnOpenNotesDirectoryClick" />
+                    <Button Classes="action"
+                            Content="恢复默认"
+                            IsEnabled="{Binding HasCustomNotesDirectory}"
+                            Click="OnResetNotesDirectoryClick" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <TextBlock Margin="4,4,0,0"
+                         Classes="hint"
+                         Text="快捷键：唤出 / 隐藏面板使用上方配置的全局热键；Ctrl+F 搜索；Esc 关闭搜索；右键分组标签可重命名或删除。" />
             </StackPanel>
           </ScrollViewer>
         </TabItem>
 
+        <!-- ═══ 外观 ═══ -->
         <TabItem Header="外观">
           <ScrollViewer>
             <StackPanel Margin="16,10,16,16" Spacing="12">
               <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="外观" />
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="*,220" Margin="16,14">
-                  <StackPanel Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="主题" />
-                    <TextBlock Classes="hint" Text="跟随系统、浅色或深色" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE790;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="主题" />
+                    <TextBlock Classes="rowHint" Text="跟随系统、浅色或深色" />
                   </StackPanel>
-                  <ComboBox Grid.Column="1"
+                  <ComboBox Grid.Column="2"
                             Width="180"
-                            HorizontalAlignment="Right"
                             VerticalAlignment="Center"
                             SelectedIndex="{Binding ThemeIndex}">
                     <ComboBoxItem Content="跟随系统" />
@@ -187,15 +245,15 @@
               </Border>
 
               <Border Classes="card">
-                <StackPanel Margin="16,14" Spacing="14">
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="窗口材质" />
-                      <TextBlock Classes="hint" Text="亚克力支持 Win10/11，云母仅 Windows 11，纯色最省资源。" />
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE7C3;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="窗口材质" />
+                      <TextBlock Classes="rowHint" Text="云母仅 Windows 11，色调跟随桌面壁纸；亚克力支持 Win10/11；纯色最省资源。" />
                     </StackPanel>
-                    <ComboBox Grid.Column="1"
+                    <ComboBox Grid.Column="2"
                               Width="180"
-                              HorizontalAlignment="Right"
                               VerticalAlignment="Center"
                               SelectedIndex="{Binding MaterialIndex}">
                       <ComboBoxItem Content="亚克力" />
@@ -204,12 +262,15 @@
                     </ComboBox>
                   </Grid>
 
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="面板不透明度" />
-                      <TextBlock Classes="hint" Text="数值越低，背景透光越明显" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE706;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="面板不透明度" />
+                      <TextBlock Classes="rowHint" Text="仅亚克力模式生效，数值越低背景越透" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1"
+                    <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Spacing="8"
                                 VerticalAlignment="Center">
@@ -230,13 +291,14 @@
               </Border>
 
               <Border Classes="card">
-                <StackPanel Margin="16,14" Spacing="14">
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="图标大小" />
-                      <TextBlock Classes="hint" Text="24 – 96 像素" />
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8E9;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="图标大小" />
+                      <TextBlock Classes="rowHint" Text="24 – 96 像素" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1"
+                    <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Spacing="8"
                                 VerticalAlignment="Center">
@@ -254,12 +316,15 @@
                     </StackPanel>
                   </Grid>
 
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="图标间距" />
-                      <TextBlock Classes="hint" Text="固定间距，不随窗口宽度变化" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xEDA3;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="图标间距" />
+                      <TextBlock Classes="rowHint" Text="固定间距，不随窗口宽度变化" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1"
+                    <StackPanel Grid.Column="2"
                                 Orientation="Horizontal"
                                 Spacing="8"
                                 VerticalAlignment="Center">
@@ -277,12 +342,16 @@
                     </StackPanel>
                   </Grid>
 
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="名称位置" />
-                      <TextBlock Classes="hint" Text="图标下方、右侧或隐藏" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8AC;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="名称位置" />
+                      <TextBlock Classes="rowHint" Text="图标下方、右侧或隐藏" />
                     </StackPanel>
-                    <ComboBox Grid.Column="1"
+                    <ComboBox Grid.Column="2"
+                              Width="180"
                               VerticalAlignment="Center"
                               SelectedIndex="{Binding LabelPositionIndex}">
                       <ComboBoxItem Content="图标下方" />
@@ -291,12 +360,16 @@
                     </ComboBox>
                   </Grid>
 
-                  <Grid ColumnDefinitions="*,220">
-                    <StackPanel Spacing="3">
-                      <TextBlock Classes="cardTitle" Text="启动板布局" />
-                      <TextBlock Classes="hint" Text="网格或单列列表" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8A9;" />
+                    <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                      <TextBlock Classes="rowTitle" Text="启动板布局" />
+                      <TextBlock Classes="rowHint" Text="网格或单列列表" />
                     </StackPanel>
-                    <ComboBox Grid.Column="1"
+                    <ComboBox Grid.Column="2"
+                              Width="180"
                               VerticalAlignment="Center"
                               SelectedIndex="{Binding LayoutIndex}">
                       <ComboBoxItem Content="网格" />
@@ -307,15 +380,17 @@
               </Border>
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="*,220" Margin="16,14">
-                  <StackPanel Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="窗口置顶" />
-                    <TextBlock Classes="hint" Text="始终显示在其他窗口之上" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE718;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="窗口置顶" />
+                    <TextBlock Classes="rowHint" Text="始终显示在其他窗口之上" />
                   </StackPanel>
-                  <CheckBox Grid.Column="1"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            IsChecked="{Binding TopMost}" />
+                  <ToggleSwitch Grid.Column="2"
+                                Classes="compact"
+                                IsChecked="{Binding TopMost}"
+                                OnContent="On"
+                                OffContent="Off" />
                 </Grid>
               </Border>
 
@@ -323,36 +398,88 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="行为">
+        <!-- ═══ 偏好 ═══ -->
+        <TabItem Header="偏好">
           <ScrollViewer>
-            <StackPanel Margin="16,6" Spacing="4">
-              <TextBlock Classes="section" Text="启动" />
-              <CheckBox Classes="option" Content="开机自动启动" IsChecked="{Binding AutoStart}" />
-              <CheckBox Classes="option" Content="启动时隐藏窗口，仅在后台运行" IsChecked="{Binding StartHidden}" />
+            <StackPanel Margin="16,10,16,16" Spacing="12">
+              <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="偏好" />
 
-              <TextBlock Classes="section" Text="打开方式" />
-              <ComboBox Width="180"
-                        Margin="0,2,0,6"
-                        HorizontalAlignment="Left"
-                        SelectedIndex="{Binding OpenModeIndex}">
-                <ComboBoxItem Content="单击打开" />
-                <ComboBoxItem Content="双击运行" />
-              </ComboBox>
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE962;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="点击模式" />
+                    <TextBlock Classes="rowHint" Text="单击打开或双击运行" />
+                  </StackPanel>
+                  <ComboBox Grid.Column="2"
+                            Width="180"
+                            VerticalAlignment="Center"
+                            SelectedIndex="{Binding OpenModeIndex}">
+                    <ComboBoxItem Content="单击打开" />
+                    <ComboBoxItem Content="双击运行" />
+                  </ComboBox>
+                </Grid>
+              </Border>
 
-              <TextBlock Classes="section" Text="隐藏" />
-              <CheckBox Classes="option" Content="启动项目后隐藏" IsChecked="{Binding HideAfterLaunch}" />
-              <CheckBox Classes="option" Content="在空白区域双击时隐藏" IsChecked="{Binding HideOnEmptyDoubleClick}" />
+              <Border Classes="card">
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE70D;" />
+                    <TextBlock Grid.Column="1" Classes="rowTitle" Margin="12,0" Text="启动项目后隐藏" />
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding HideAfterLaunch}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
 
-              <TextBlock Classes="section" Text="窗口" />
-              <CheckBox Classes="option" Content="拖动到屏幕边缘时自动吸附" IsChecked="{Binding EdgeSnap}" />
-              <CheckBox Classes="option" Content="锁定窗口位置与尺寸" IsChecked="{Binding LockPosition}" />
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8BB;" />
+                    <TextBlock Grid.Column="1" Classes="rowTitle" Margin="12,0" Text="在空白区域双击时隐藏" />
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding HideOnEmptyDoubleClick}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8C2;" />
+                    <TextBlock Grid.Column="1" Classes="rowTitle" Margin="12,0" Text="拖动到屏幕边缘时自动吸附" />
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding EdgeSnap}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
+
+                  <Border Classes="separator" />
+
+                  <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                    <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE72E;" />
+                    <TextBlock Grid.Column="1" Classes="rowTitle" Margin="12,0" Text="锁定窗口位置与尺寸" />
+                    <ToggleSwitch Grid.Column="2"
+                                  Classes="compact"
+                                  IsChecked="{Binding LockPosition}"
+                                  OnContent="On"
+                                  OffContent="Off" />
+                  </Grid>
+                </StackPanel>
+              </Border>
             </StackPanel>
           </ScrollViewer>
         </TabItem>
 
+        <!-- ═══ 唤出与收起 ═══ -->
         <TabItem Header="唤出与收起">
           <ScrollViewer>
-            <StackPanel Margin="16,10,16,16" Spacing="10">
+            <StackPanel Margin="16,10,16,16" Spacing="12">
               <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="唤出与收起" />
 
               <Border Classes="card">
@@ -521,41 +648,67 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="安全">
+        <!-- ═══ 安全与隐私 ═══ -->
+        <TabItem Header="安全与隐私">
           <ScrollViewer>
-            <StackPanel Margin="16,6" Spacing="8" Width="460" HorizontalAlignment="Left">
-              <TextBlock Classes="section" Text="启动板密码" />
-              <TextBlock FontSize="13" Text="{Binding PasswordStatus}" />
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Content="设置 / 修改密码" Click="OnSetPasswordClick" />
-                <Button Content="清除密码" Click="OnClearPasswordClick" IsEnabled="{Binding HasPassword}" />
-              </StackPanel>
-              <CheckBox Classes="option"
-                        Content="隐藏面板时自动锁定"
-                        IsChecked="{Binding AutoLock}"
-                        IsEnabled="{Binding HasPassword}" />
-              <TextBlock Classes="hint" Text="密码使用 PBKDF2-SHA256 加盐存储，不保存明文。" />
+            <StackPanel Margin="16,10,16,16" Spacing="12">
+              <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="安全与隐私" />
+
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE72E;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="启动板密码" />
+                    <TextBlock Classes="rowHint" Text="{Binding PasswordStatus}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2"
+                              Orientation="Horizontal"
+                              Spacing="6"
+                              VerticalAlignment="Center">
+                    <Button Classes="action" Content="设置 / 修改密码" Click="OnSetPasswordClick" />
+                    <Button Classes="action"
+                            Content="清除密码"
+                            IsEnabled="{Binding HasPassword}"
+                            Click="OnClearPasswordClick" />
+                  </StackPanel>
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE785;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="隐藏面板时自动锁定" />
+                    <TextBlock Classes="rowHint" Text="需先设置密码" />
+                  </StackPanel>
+                  <ToggleSwitch Grid.Column="2"
+                                Classes="compact"
+                                IsChecked="{Binding AutoLock}"
+                                IsEnabled="{Binding HasPassword}"
+                                OnContent="On"
+                                OffContent="Off" />
+                </Grid>
+              </Border>
+
+              <TextBlock Margin="4,4,0,0"
+                         Classes="hint"
+                         Text="密码使用 PBKDF2-SHA256 加盐存储，不保存明文。" />
             </StackPanel>
           </ScrollViewer>
         </TabItem>
 
+        <!-- ═══ 维护 ═══ -->
         <TabItem Header="维护">
           <ScrollViewer>
-            <StackPanel Margin="16,10,16,16" Spacing="10">
+            <StackPanel Margin="16,10,16,16" Spacing="12">
               <TextBlock Classes="pageTitle" Margin="2,0,0,4" Text="维护" />
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,14">
-                  <TextBlock Grid.Column="0"
-                             Width="24"
-                             VerticalAlignment="Center"
-                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                             FontSize="16"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Text="&#xE90F;" />
-                  <StackPanel Grid.Column="1" Margin="14,0,12,0" Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="修复图标" />
-                    <TextBlock Classes="hint" Text="清除图标缓存并重新提取所有图标" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE90F;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="修复图标" />
+                    <TextBlock Classes="rowHint" Text="清除图标缓存并重新提取所有图标" />
                   </StackPanel>
                   <Button Grid.Column="2"
                           Classes="action"
@@ -566,17 +719,11 @@
               </Border>
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,14">
-                  <TextBlock Grid.Column="0"
-                             Width="24"
-                             VerticalAlignment="Center"
-                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                             FontSize="16"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Text="&#xE8CB;" />
-                  <StackPanel Grid.Column="1" Margin="14,0,12,0" Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="按名称排序全部项" />
-                    <TextBlock Classes="hint" Text="按显示名称重新排列每个分组内的条目" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE8CB;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="按名称排序全部项" />
+                    <TextBlock Classes="rowHint" Text="按显示名称重新排列每个分组内的条目" />
                   </StackPanel>
                   <Button Grid.Column="2"
                           Classes="action"
@@ -587,17 +734,11 @@
               </Border>
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,14">
-                  <TextBlock Grid.Column="0"
-                             Width="24"
-                             VerticalAlignment="Center"
-                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                             FontSize="16"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Text="&#xE8C8;" />
-                  <StackPanel Grid.Column="1" Margin="14,0,12,0" Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="清理全部重复项" />
-                    <TextBlock Classes="hint" Text="同一分组内目标相同的条目只保留一个" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE8C8;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="清理全部重复项" />
+                    <TextBlock Classes="rowHint" Text="同一分组内目标相同的条目只保留一个" />
                   </StackPanel>
                   <Button Grid.Column="2"
                           Classes="action"
@@ -608,17 +749,11 @@
               </Border>
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,14">
-                  <TextBlock Grid.Column="0"
-                             Width="24"
-                             VerticalAlignment="Center"
-                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                             FontSize="16"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Text="&#xE7BA;" />
-                  <StackPanel Grid.Column="1" Margin="14,0,12,0" Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="清理全部失效项" />
-                    <TextBlock Classes="hint" Text="移除目标文件或文件夹已不存在的条目" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE7BA;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="清理全部失效项" />
+                    <TextBlock Classes="rowHint" Text="移除目标文件或文件夹已不存在的条目" />
                   </StackPanel>
                   <Button Grid.Column="2"
                           Classes="action"
@@ -629,17 +764,11 @@
               </Border>
 
               <Border Classes="card">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,14">
-                  <TextBlock Grid.Column="0"
-                             Width="24"
-                             VerticalAlignment="Center"
-                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                             FontSize="16"
-                             Foreground="{DynamicResource TextSecondary}"
-                             Text="&#xE71D;" />
-                  <StackPanel Grid.Column="1" Margin="14,0,12,0" Spacing="3">
-                    <TextBlock Classes="cardTitle" Text="清理空标签" />
-                    <TextBlock Classes="hint" Text="移除没有任何条目的空分组（至少保留一个）" />
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" FontSize="16" Text="&#xE71D;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="清理空标签" />
+                    <TextBlock Classes="rowHint" Text="移除没有任何条目的空分组（至少保留一个）" />
                   </StackPanel>
                   <Button Grid.Column="2"
                           Classes="action"

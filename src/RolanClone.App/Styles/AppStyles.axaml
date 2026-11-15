@@ -1,6 +1,13 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+  <!-- 中文 UI 标准字体：细字重对齐 WinUI 的视觉粗细，避免文字显粗显突兀；
+       选中态/标题显式设 SemiBold，层级不受影响 -->
+  <Style Selector="Window">
+    <Setter Property="FontFamily" Value="Microsoft YaHei UI" />
+    <Setter Property="FontWeight" Value="Light" />
+  </Style>
+
   <Style Selector="Button.chrome">
     <Setter Property="Width" Value="32" />
     <Setter Property="Height" Value="26" />
@@ -73,7 +80,31 @@
     <Setter Property="Background" Value="{DynamicResource CardBackground}" />
     <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <!-- 暖棕药丸开关：设置页统一使用，仅覆盖 Fluent 模板的颜色资源 -->
+  <Style Selector="ToggleSwitch.compact">
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="OnContent" Value="On" />
+    <Setter Property="OffContent" Value="Off" />
+    <Style.Resources>
+      <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="#FF8A6A5C" />
+      <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="#FF7A5B4D" />
+      <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="#FF6F5347" />
+      <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="#FF8A6A5C" />
+      <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="#FF7A5B4D" />
+      <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="#FF6F5347" />
+      <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="#FFFFFFFF" />
+      <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="#FFFFFFFF" />
+      <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="#FFFFFFFF" />
+    </Style.Resources>
+  </Style>
+
+  <Style Selector="ToggleSwitch.compact:disabled">
+    <Setter Property="Opacity" Value="0.5" />
   </Style>
 
   <Style Selector="TextBlock.cardTitle">
@@ -97,11 +128,6 @@
     <Setter Property="FontSize" Value="11.5" />
     <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
     <Setter Property="TextWrapping" Value="Wrap" />
-  </Style>
-
-  <Style Selector="CheckBox.option">
-    <Setter Property="FontSize" Value="13" />
-    <Setter Property="MinHeight" Value="30" />
   </Style>
 
   <!-- 菜单浮层：字号与内边距跟随面板排版 -->
