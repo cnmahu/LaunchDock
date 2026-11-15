@@ -1,0 +1,33 @@
+# .NET / Visual Studio
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Ll]og/
+[Ll]ogs/
+publish/
+
+# IDE
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# 构建与临时文件
+*.tmp
+*.bak
+*.cache
+*.pdb
+
+# 运行期数据（便签默认保存在程序目录下）
+Notes/
+
+# 系统文件
+Thumbs.db
+desktop.ini

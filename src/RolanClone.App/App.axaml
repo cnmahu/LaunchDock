@@ -1,0 +1,60 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="RolanClone.App.App">
+
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon ToolTipText="启坞 LaunchDock" Icon="/Assets/app.png">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="显示启动板" Click="OnTrayShowClick" />
+            <NativeMenuItem Header="设置" Click="OnTraySettingsClick" />
+            <NativeMenuItemSeparator />
+            <NativeMenuItem Header="退出" Click="OnTrayExitClick" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.Icons>
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="TextPrimary" Color="#FF1F1F1F" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#FF6B6B6B" />
+          <SolidColorBrush x:Key="Divider" Color="#14000000" />
+          <SolidColorBrush x:Key="PanelBackground" Color="#B8FFFFFF" />
+          <SolidColorBrush x:Key="WindowBackground" Color="#FFFBF7F5" />
+          <SolidColorBrush x:Key="CardBackground" Color="#FFFFFFFF" />
+          <SolidColorBrush x:Key="CardBorder" Color="#12000000" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#12000000" />
+          <SolidColorBrush x:Key="SearchBackground" Color="#1AFFFFFF" />
+          <SolidColorBrush x:Key="SearchBorder" Color="#26000000" />
+          <SolidColorBrush x:Key="NavSelected" Color="#F2E4DE" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="TextPrimary" Color="#FFF3F3F3" />
+          <SolidColorBrush x:Key="TextSecondary" Color="#FFA9A9A9" />
+          <SolidColorBrush x:Key="Divider" Color="#22FFFFFF" />
+          <SolidColorBrush x:Key="PanelBackground" Color="#CC1C1C1C" />
+          <SolidColorBrush x:Key="WindowBackground" Color="#FF1C1C1C" />
+          <SolidColorBrush x:Key="CardBackground" Color="#FF262626" />
+          <SolidColorBrush x:Key="CardBorder" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="HoverBrush" Color="#1FFFFFFF" />
+          <SolidColorBrush x:Key="SearchBackground" Color="#22FFFFFF" />
+          <SolidColorBrush x:Key="SearchBorder" Color="#33FFFFFF" />
+          <SolidColorBrush x:Key="NavSelected" Color="#3A2A24" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+
+      <SolidColorBrush x:Key="Accent" Color="#FF2F6FEB" />
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://RolanClone/Styles/AppStyles.axaml" />
+  </Application.Styles>
+
+</Application>

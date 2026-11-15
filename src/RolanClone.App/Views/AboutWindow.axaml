@@ -1,0 +1,92 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="RolanClone.App.Views.AboutWindow"
+        Title="关于 启坞 LaunchDock"
+        Icon="/Assets/app.png"
+        Width="580"
+        Height="600"
+        MinWidth="460"
+        MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="AcrylicBlur, Blur, Transparent"
+        Background="{DynamicResource PanelBackground}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.aboutBody">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="LineHeight" Value="23" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+  </Window.Styles>
+
+  <Border CornerRadius="10" ClipToBounds="True">
+    <Grid RowDefinitions="37,*">
+
+      <Grid Grid.Row="0"
+            ColumnDefinitions="Auto,*,Auto"
+            Background="Transparent"
+            PointerPressed="OnTitleBarPressed">
+        <TextBlock Grid.Column="0"
+                   Margin="16,0,0,0"
+                   VerticalAlignment="Center"
+                   FontSize="13"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimary}"
+                   Text="关于" />
+        <Button Grid.Column="2"
+                Classes="chrome"
+                Margin="0,0,6,0"
+                ToolTip.Tip="关闭"
+                Click="OnCloseClick">
+          <Path Data="M4,4 L14,14 M14,4 L4,14"
+                Stroke="{DynamicResource TextSecondary}"
+                StrokeThickness="1.3"
+                StrokeLineCap="Round" />
+        </Button>
+      </Grid>
+
+      <ScrollViewer Grid.Row="1">
+        <StackPanel Margin="28,10,28,26" Spacing="14">
+
+          <StackPanel Spacing="4">
+            <TextBlock FontSize="24"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}"
+                       Text="启坞 LaunchDock" />
+            <TextBlock FontSize="13"
+                       Foreground="{DynamicResource TextSecondary}"
+                       Text="你的桌面启动坞" />
+          </StackPanel>
+
+          <TextBlock Classes="aboutBody" FontWeight="SemiBold"
+                     Text="每天打开电脑，我们总要在桌面、开始菜单、文件夹和浏览器之间反复寻找：常用软件在哪、项目文件夹在哪、常用网页收藏在哪。启坞 LaunchDock 就是为解决这些“小但频繁”的查找动作而生。" />
+
+          <TextBlock Classes="aboutBody"
+                     Text="启坞是一款桌面快捷菜单与启动效率工具。你可以把常用应用、文件、文件夹、网页链接和命令统一收纳进启动坞，并按工作、学习、设计、开发等场景自由分组。需要使用时，通过全局热键一键呼出菜单，点击即可启动，不必回到桌面翻找，也不必在多个窗口间切换。" />
+
+          <TextBlock Classes="aboutBody"
+                     Text="启坞支持自定义菜单布局、图标与分组，让快捷方式不只是“堆在一起”，而是按你的使用习惯有序停靠。它适合多软件办公、设计创作、程序开发、资料管理以及多屏桌面用户，也适合希望保持桌面整洁、提升操作效率的普通用户。" />
+
+          <StackPanel Spacing="4" Margin="0,6,0,0">
+            <TextBlock Classes="aboutBody"
+                       FontWeight="SemiBold"
+                       Text="常用应用，一坞直达。" />
+            <TextBlock Classes="aboutBody"
+                       Text="启坞 LaunchDock，让你的桌面更干净，让启动更直接。" />
+          </StackPanel>
+
+          <TextBlock x:Name="VersionText"
+                     Margin="0,10,0,0"
+                     FontSize="11.5"
+                     Foreground="{DynamicResource TextSecondary}" />
+
+        </StackPanel>
+      </ScrollViewer>
+
+    </Grid>
+  </Border>
+
+</Window>

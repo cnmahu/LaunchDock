@@ -1,0 +1,449 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:primitives="using:Avalonia.Controls.Primitives"
+        x:Class="RolanClone.App.Views.LauncherWindow"
+        Title="启坞 LaunchDock"
+        Icon="/Assets/app.png"
+        Width="1026"
+        Height="797"
+        MinWidth="640"
+        MinHeight="420"
+        WindowStartupLocation="Manual"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        TransparencyLevelHint="AcrylicBlur, Blur, Transparent"
+        Background="#B8FFFFFF">
+
+  <Window.Resources>
+    <ItemsPanelTemplate x:Key="GridItemsPanel">
+      <WrapPanel Orientation="Horizontal" />
+    </ItemsPanelTemplate>
+
+    <ItemsPanelTemplate x:Key="ListItemsPanel">
+      <StackPanel Spacing="2" />
+    </ItemsPanelTemplate>
+
+    <DataTemplate x:Key="GridItemTemplate">
+      <Border Classes="tile"
+              Width="{Binding TileWidth}"
+              Height="{Binding TileHeight}"
+              Margin="{Binding TileMargin}"
+              CornerRadius="8"
+              VerticalAlignment="Top"
+              Tapped="OnItemTapped"
+              DoubleTapped="OnItemDoubleTapped"
+              PointerPressed="OnTilePointerPressed"
+              PointerMoved="OnTilePointerMoved"
+              DragDrop.AllowDrop="True"
+              DragDrop.DragOver="OnTileDragOver"
+              DragDrop.Drop="OnTileDrop"
+              ToolTip.Tip="{Binding ToolTip}">
+        <Border.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="打开" Click="OnItemOpenClick" />
+            <MenuItem Header="以管理员身份运行" Click="OnItemRunAsAdminClick" />
+            <MenuItem Header="打开文件位置" Click="OnItemOpenLocationClick" />
+            <MenuItem Header="复制路径" Click="OnItemCopyPathClick" />
+            <MenuItem Header="重命名" Click="OnItemRenameClick" IsVisible="{Binding CanEdit}" />
+            <MenuItem Header="删除" Click="OnItemDeleteClick" IsVisible="{Binding CanEdit}" />
+          </ContextMenu>
+        </Border.ContextMenu>
+        <StackPanel VerticalAlignment="Center"
+                    Spacing="6"
+                    Orientation="{Binding LabelOrientation}">
+          <Panel Width="{Binding IconSize}"
+                 Height="{Binding IconSize}"
+                 HorizontalAlignment="Center">
+            <Border CornerRadius="12"
+                    Background="{Binding Accent}"
+                    IsVisible="{Binding !HasIcon}">
+              <TextBlock HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="15"
+                         FontWeight="SemiBold"
+                         Foreground="White"
+                         Text="{Binding Initials}" />
+            </Border>
+            <Image Source="{Binding Icon}"
+                   Stretch="Uniform"
+                   IsVisible="{Binding HasIcon}"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+          </Panel>
+          <TextBlock Margin="2,0"
+                     HorizontalAlignment="{Binding LabelAlignment}"
+                     VerticalAlignment="Center"
+                     FontSize="12"
+                     Foreground="{DynamicResource TextPrimary}"
+                     Text="{Binding Name}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxLines="2"
+                     TextTrimming="CharacterEllipsis"
+                     IsVisible="{Binding ShowLabel}" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ListItemTemplate">
+      <Border Classes="tile"
+              Width="{Binding TileWidth}"
+              Height="{Binding TileHeight}"
+              Margin="4,1"
+              CornerRadius="8"
+              Tapped="OnItemTapped"
+              DoubleTapped="OnItemDoubleTapped"
+              PointerPressed="OnTilePointerPressed"
+              PointerMoved="OnTilePointerMoved"
+              DragDrop.AllowDrop="True"
+              DragDrop.DragOver="OnTileDragOver"
+              DragDrop.Drop="OnTileDrop"
+              ToolTip.Tip="{Binding ToolTip}">
+        <Border.ContextMenu>
+          <ContextMenu>
+            <MenuItem Header="打开" Click="OnItemOpenClick" />
+            <MenuItem Header="以管理员身份运行" Click="OnItemRunAsAdminClick" />
+            <MenuItem Header="打开文件位置" Click="OnItemOpenLocationClick" />
+            <MenuItem Header="复制路径" Click="OnItemCopyPathClick" />
+            <MenuItem Header="重命名" Click="OnItemRenameClick" IsVisible="{Binding CanEdit}" />
+            <MenuItem Header="删除" Click="OnItemDeleteClick" IsVisible="{Binding CanEdit}" />
+          </ContextMenu>
+        </Border.ContextMenu>
+        <Grid ColumnDefinitions="Auto,*" Margin="10,0">
+          <Panel Width="{Binding IconSize}"
+                 Height="{Binding IconSize}"
+                 VerticalAlignment="Center">
+            <Border CornerRadius="8"
+                    Background="{Binding Accent}"
+                    IsVisible="{Binding !HasIcon}">
+              <TextBlock HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="12"
+                         FontWeight="SemiBold"
+                         Foreground="White"
+                         Text="{Binding Initials}" />
+            </Border>
+            <Image Source="{Binding Icon}"
+                   Stretch="Uniform"
+                   IsVisible="{Binding HasIcon}"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+          </Panel>
+          <TextBlock Grid.Column="1"
+                     Margin="10,0,0,0"
+                     VerticalAlignment="Center"
+                     FontSize="13"
+                     Foreground="{DynamicResource TextPrimary}"
+                     Text="{Binding Name}"
+                     TextTrimming="CharacterEllipsis" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Border x:Name="RootBorder"
+          CornerRadius="10"
+          ClipToBounds="True"
+          DragDrop.AllowDrop="True"
+          DragDrop.DragOver="OnDragOver"
+          DragDrop.Drop="OnDrop">
+
+    <Grid RowDefinitions="37,*">
+
+      <!-- 标题栏：拖动区域 + 搜索/菜单/关闭 -->
+      <Grid Grid.Row="0"
+            ColumnDefinitions="Auto,*,Auto"
+            Background="Transparent"
+            PointerPressed="OnTitleBarPressed">
+
+        <TextBlock Grid.Column="0"
+                   Margin="16,0,0,0"
+                   VerticalAlignment="Center"
+                   FontSize="12.5"
+                   Foreground="{DynamicResource TextSecondary}"
+                   Text="启坞 LaunchDock" />
+
+        <StackPanel Grid.Column="2"
+                    Margin="0,0,6,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal"
+                    Spacing="2">
+
+          <Button Classes="chrome" Focusable="False" ToolTip.Tip="搜索 (Ctrl+F)" Click="OnSearchClick">
+            <Grid Width="16" Height="16">
+              <Ellipse Width="10"
+                       Height="10"
+                       Margin="2"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"
+                       Stroke="{DynamicResource TextSecondary}"
+                       StrokeThickness="1.3" />
+              <Path Data="M11,11 L14,14"
+                    Stroke="{DynamicResource TextSecondary}"
+                    StrokeThickness="1.3"
+                    StrokeLineCap="Round" />
+            </Grid>
+          </Button>
+
+          <Button Classes="chrome" Focusable="False" ToolTip.Tip="菜单">
+            <Button.Flyout>
+              <MenuFlyout Placement="BottomEdgeAlignedRight">
+                <MenuItem Header="新建项目" Click="OnNewItemClick" />
+                <MenuItem Header="设置" Click="OnSettingsClick" />
+                <MenuItem Header="关于" Click="OnAboutClick" />
+                <MenuItem Header="检查更新（M4 实现）" IsEnabled="False" />
+                <MenuItem Header="退出" Click="OnExitClick" />
+              </MenuFlyout>
+            </Button.Flyout>
+            <Path Data="M3,4.5 L15,4.5 M3,9 L15,9 M3,13.5 L15,13.5"
+                  Stroke="{DynamicResource TextSecondary}"
+                  StrokeThickness="1.4"
+                  StrokeLineCap="Round" />
+          </Button>
+
+          <Button Classes="chrome" Focusable="False" ToolTip.Tip="关闭" Click="OnCloseClick">
+            <Path Data="M4,4 L14,14 M14,4 L4,14"
+                  Stroke="{DynamicResource TextSecondary}"
+                  StrokeThickness="1.3"
+                  StrokeLineCap="Round" />
+          </Button>
+
+        </StackPanel>
+
+      </Grid>
+
+      <!-- 搜索栏 + 分组标签 + 图标网格 -->
+      <Grid Grid.Row="1" RowDefinitions="Auto,40,*" Margin="8,0,8,8">
+
+        <Border Grid.Row="0"
+                Height="34"
+                Margin="8,2,8,6"
+                CornerRadius="8"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource SearchBorder}"
+                Background="{DynamicResource SearchBackground}"
+                IsVisible="{Binding IsSearchActive}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBox x:Name="SearchBox"
+                     Margin="10,0"
+                     VerticalContentAlignment="Center"
+                     FontSize="13"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Text="{Binding SearchText}"
+                     Watermark="搜索名称 / 拼音首字母 / 路径（Esc 关闭）" />
+            <Button Grid.Column="1"
+                    Classes="chrome"
+                    Margin="0,0,4,0"
+                    ToolTip.Tip="关闭搜索"
+                    Click="OnCloseSearchClick">
+              <Path Data="M4,4 L12,12 M12,4 L4,12"
+                    Stroke="{DynamicResource TextSecondary}"
+                    StrokeThickness="1.3"
+                    StrokeLineCap="Round" />
+            </Button>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="8,0">
+          <ScrollViewer Grid.Column="0"
+                        HorizontalScrollBarVisibility="Auto"
+                        VerticalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Horizontal" Spacing="2">
+              <ItemsControl ItemsSource="{Binding Tabs}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="2" />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Classes="tab"
+                            Classes.active="{Binding IsSelected}"
+                            Content="{Binding Name}"
+                            Click="OnTabClick">
+                      <Button.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="新建文件夹分组"
+                                    Click="OnNewLiveFolderTabClick"
+                                    IsVisible="{Binding !IsLiveFolder}" />
+                          <MenuItem Header="刷新"
+                                    Click="OnRefreshLiveFolderClick"
+                                    IsVisible="{Binding IsLiveFolder}" />
+                          <MenuItem Header="重新绑定文件夹"
+                                    Click="OnRebindLiveFolderClick"
+                                    IsVisible="{Binding IsLiveFolder}" />
+                          <MenuItem Header="打开源文件夹"
+                                    Click="OnOpenLiveFolderSourceClick"
+                                    IsVisible="{Binding IsLiveFolder}" />
+                          <MenuItem Header="重命名" Click="OnRenameTabClick" />
+                          <MenuItem Header="删除" Click="OnDeleteTabClick" />
+                        </ContextMenu>
+                      </Button.ContextMenu>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Button Classes="tab"
+                      Content="+"
+                      ToolTip.Tip="新建分组"
+                      Click="OnAddTabClick" />
+            </StackPanel>
+          </ScrollViewer>
+
+          <Button Grid.Column="1"
+                  Classes="tab"
+                  Classes.active="{Binding Notes.IsOpen}"
+                  Margin="4,0,2,0"
+                  ToolTip.Tip="便签"
+                  Click="OnNotesClick">
+            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       FontSize="15"
+                       Text="&#xE70B;" />
+          </Button>
+        </Grid>
+
+        <ScrollViewer Grid.Row="2"
+                      Padding="8,6,0,0"
+                      Background="Transparent"
+                      IsVisible="{Binding !Notes.IsOpen}"
+                      HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto"
+                      DoubleTapped="OnEmptyDoubleTapped">
+          <ScrollViewer.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="添加应用" Click="OnAddAppClick">
+                <MenuItem.Icon>
+                  <Path Data="M6,1 L6,11 M1,6 L11,6"
+                        Stroke="{DynamicResource TextSecondary}"
+                        StrokeThickness="1.3"
+                        StrokeLineCap="Round" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="添加快捷方式" Click="OnAddShortcutClick">
+                <MenuItem.Icon>
+                  <Path Data="M6,1 L6,11 M1,6 L11,6"
+                        Stroke="{DynamicResource TextSecondary}"
+                        StrokeThickness="1.3"
+                        StrokeLineCap="Round" />
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="添加链接" Click="OnAddLinkClick">
+                <MenuItem.Icon>
+                  <Path Data="M6,1 L6,11 M1,6 L11,6"
+                        Stroke="{DynamicResource TextSecondary}"
+                        StrokeThickness="1.3"
+                        StrokeLineCap="Round" />
+                </MenuItem.Icon>
+              </MenuItem>
+            </ContextMenu>
+          </ScrollViewer.ContextMenu>
+          <ItemsControl x:Name="ItemList"
+                        ItemsSource="{Binding VisibleItems}"
+                        VerticalAlignment="Top" />
+        </ScrollViewer>
+
+        <!-- 便签：左侧列表 + 右侧编辑区 -->
+        <Grid Grid.Row="2" Margin="8,4,8,0" IsVisible="{Binding Notes.IsOpen}">
+          <Grid ColumnDefinitions="200,*">
+
+            <Grid RowDefinitions="Auto,*,Auto" Margin="0,0,4,0">
+              <Grid ColumnDefinitions="*,Auto" Margin="8,2,0,6">
+                <TextBlock VerticalAlignment="Center"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimary}"
+                           Text="便签" />
+                <Button Grid.Column="1"
+                        Classes="chrome"
+                        ToolTip.Tip="新建便签"
+                        Click="OnNewNoteClick">
+                  <Path Data="M6,1 L6,11 M1,6 L11,6"
+                        Stroke="{DynamicResource TextSecondary}"
+                        StrokeThickness="1.3"
+                        StrokeLineCap="Round" />
+                </Button>
+              </Grid>
+
+              <ListBox Grid.Row="1"
+                       Margin="0,2,0,0"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       ItemsSource="{Binding Notes.Notes}"
+                       SelectedItem="{Binding Notes.SelectedNote}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock FontSize="13"
+                               Foreground="{DynamicResource TextPrimary}"
+                               Text="{Binding Title}"
+                               TextTrimming="CharacterEllipsis" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+
+              <TextBlock Grid.Row="2"
+                         Margin="8,4,0,0"
+                         FontSize="11"
+                         Foreground="{DynamicResource TextSecondary}"
+                         Text="{Binding Notes.Status}"
+                         TextTrimming="CharacterEllipsis" />
+            </Grid>
+
+            <Border Grid.Column="1"
+                    Margin="8,0,0,0"
+                    CornerRadius="8"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    Background="{DynamicResource CardBackground}">
+              <TextBox x:Name="NoteTextBox"
+                       BorderThickness="0"
+                       Background="Transparent"
+                       Padding="14,12"
+                       FontSize="13.5"
+                       AcceptsReturn="True"
+                       TextWrapping="Wrap"
+                       VerticalContentAlignment="Top"
+                       VerticalAlignment="Stretch"
+                       Watermark="记录点什么…"
+                       IsVisible="{Binding Notes.HasNote}"
+                       Text="{Binding Notes.NoteText}" />
+            </Border>
+
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+      <!-- 锁定遮罩 -->
+      <Border x:Name="LockOverlay"
+              Grid.Row="1"
+              Background="{DynamicResource WindowBackground}"
+              IsVisible="False">
+        <StackPanel Width="300"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Spacing="12">
+          <TextBlock HorizontalAlignment="Center"
+                     FontSize="15"
+                     FontWeight="SemiBold"
+                     Foreground="{DynamicResource TextPrimary}"
+                     Text="启动板已锁定" />
+          <TextBox x:Name="LockPasswordBox"
+                   FontSize="13"
+                   PasswordChar="●"
+                   Watermark="输入密码解锁"
+                   KeyDown="OnLockPasswordKeyDown" />
+          <Button MinWidth="96"
+                  HorizontalAlignment="Center"
+                  Content="解锁"
+                  Click="OnUnlockClick" />
+          <TextBlock x:Name="LockErrorText"
+                     HorizontalAlignment="Center"
+                     FontSize="12"
+                     Foreground="#FFE5484D" />
+        </StackPanel>
+      </Border>
+
+    </Grid>
+  </Border>
+
+</Window>

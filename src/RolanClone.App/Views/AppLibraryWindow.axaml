@@ -1,0 +1,190 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:primitives="using:Avalonia.Controls.Primitives"
+        x:Class="RolanClone.App.Views.AppLibraryWindow"
+        Title="应用库"
+        Icon="/Assets/app.png"
+        Width="900"
+        Height="600"
+        MinWidth="620"
+        MinHeight="420"
+        WindowStartupLocation="Manual"
+        ShowInTaskbar="False"
+        Background="{DynamicResource WindowBackground}">
+
+  <Window.Resources>
+    <ItemsPanelTemplate x:Key="LibraryItemsPanel">
+      <WrapPanel Orientation="Horizontal" />
+    </ItemsPanelTemplate>
+
+    <DataTemplate x:Key="LibraryItemTemplate">
+      <Border Classes="libTile"
+              Width="{Binding TileWidth}"
+              Height="{Binding TileHeight}"
+              Margin="{Binding TileMargin}"
+              CornerRadius="8"
+              PointerPressed="OnTilePointerPressed"
+              PointerMoved="OnTilePointerMoved"
+              DoubleTapped="OnTileDoubleTapped"
+              ToolTip.Tip="{Binding Name}">
+        <StackPanel VerticalAlignment="Center" Spacing="6">
+          <Panel Width="40" Height="40" HorizontalAlignment="Center">
+            <Border CornerRadius="10"
+                    Background="{Binding Accent}"
+                    IsVisible="{Binding !HasIcon}">
+              <TextBlock HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         FontSize="13"
+                         FontWeight="SemiBold"
+                         Foreground="White"
+                         Text="{Binding Initials}" />
+            </Border>
+            <Image Source="{Binding Icon}"
+                   Stretch="Uniform"
+                   IsVisible="{Binding HasIcon}"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+          </Panel>
+          <TextBlock HorizontalAlignment="Center"
+                     FontSize="11"
+                     Foreground="{DynamicResource TextPrimary}"
+                     Text="{Binding Name}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxLines="2"
+                     TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Window.Styles>
+    <Style Selector="Border.libTile">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.libTile:pointerover">
+      <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    </Style>
+
+    <Style Selector="TabItem">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+      <Setter Property="Padding" Value="10,7" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+            <Grid RowDefinitions="*,2">
+              <ContentPresenter Grid.Row="0"
+                                Content="{TemplateBinding Header}"
+                                VerticalAlignment="Center" />
+              <Border Grid.Row="1"
+                      Name="TabIndicator"
+                      Margin="0,2,0,0"
+                      Height="2"
+                      Background="{DynamicResource Accent}"
+                      IsVisible="False" />
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="TabItem:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+    </Style>
+    <Style Selector="TabItem:selected">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TabItem:selected /template/ Border#TabIndicator">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*">
+
+    <Border x:Name="TipBar" Height="40" Background="#FFF6EFEE" Padding="14,0">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <Border Width="16"
+                Height="16"
+                CornerRadius="8"
+                Background="#FF7F7F7F"
+                VerticalAlignment="Center">
+          <TextBlock HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     FontSize="10"
+                     FontWeight="Bold"
+                     Foreground="White"
+                     Text="!" />
+        </Border>
+        <TextBlock Grid.Column="1"
+                   Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   FontSize="12.5"
+                   Foreground="{DynamicResource TextSecondary}"
+                   Text="拖拽内容到启动板即可完成添加。" />
+        <Button Grid.Column="2"
+                Classes="chrome"
+                Click="OnCloseTipClick"
+                ToolTip.Tip="关闭提示">
+          <Path Data="M4,4 L12,12 M12,4 L4,12"
+                Stroke="{DynamicResource TextSecondary}"
+                StrokeThickness="1.2"
+                StrokeLineCap="Round" />
+        </Button>
+      </Grid>
+    </Border>
+
+    <TabControl Grid.Row="1" Padding="10,4,10,10" Background="Transparent">
+      <TabItem Header="标准文件夹">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding StandardFolders}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="系统应用">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding SystemTools}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="桌面应用">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding DesktopApps}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="商店应用">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding StoreApps}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="网页应用">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding WebApps}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+
+      <TabItem Header="扩展应用">
+        <ScrollViewer>
+          <ItemsControl ItemsSource="{Binding Extensions}"
+                        ItemsPanel="{StaticResource LibraryItemsPanel}"
+                        ItemTemplate="{StaticResource LibraryItemTemplate}" VerticalAlignment="Top" />
+        </ScrollViewer>
+      </TabItem>
+    </TabControl>
+
+  </Grid>
+
+</Window>
+
+
