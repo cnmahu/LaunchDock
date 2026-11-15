@@ -4,7 +4,7 @@
 
 启坞是一款 Windows 桌面快捷菜单与启动效率工具。你可以把常用应用、文件、文件夹、网页链接和命令统一收纳进启动坞，按工作、学习、设计、开发等场景自由分组；需要时通过全局热键一键呼出，点击即可启动，不必回到桌面翻找。
 
-本项目基于 **.NET 8 + Avalonia** 从零实现，界面与交互风格参考 Rolan，用于学习桌面 UI 框架与 Windows Shell 集成。
+本项目基于 **.NET 8 + Avalonia** 从零实现，用于学习桌面 UI 框架与 Windows Shell 集成。
 
 ## 功能
 
@@ -31,11 +31,11 @@
 ## 目录结构
 
 ```
-RolanClone.sln
+LaunchDock.sln
 src/
-  RolanClone.Core/      # 配置模型、JSON 存储、密码哈希、便签目录规则
-  RolanClone.Windows/   # Windows 平台：图标、热键、鼠标钩子、启动、应用库、快捷方式
-  RolanClone.App/       # Avalonia 界面：启动板、设置、应用库、便签、关于
+  LaunchDock.Core/      # 配置模型、JSON 存储、密码哈希、便签目录规则
+  LaunchDock.Windows/   # Windows 平台：图标、热键、鼠标钩子、启动、应用库、快捷方式
+  LaunchDock.App/       # Avalonia 界面：启动板、设置、应用库、便签、关于
 ```
 
 ## 构建与运行
@@ -43,14 +43,14 @@ src/
 要求：Windows 10 1809+（内部版本 19041 及以上）、.NET 8 SDK。
 
 ```powershell
-dotnet build RolanClone.sln -c Debug
-dotnet run --project src/RolanClone.App
+dotnet build LaunchDock.sln -c Debug
+dotnet run --project src/LaunchDock.App
 ```
 
 发布单文件（可选）：
 
 ```powershell
-dotnet publish src/RolanClone.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish src/LaunchDock.App -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 > 注意：`IncludeNativeLibrariesForSelfExtract` 必须开启，否则 SkiaSharp 原生库不会随单文件包解出，启动时会抛 `DllNotFoundException`。
@@ -59,16 +59,16 @@ dotnet publish src/RolanClone.App -c Release -r win-x64 --self-contained true -p
 
 | 内容 | 路径 |
 | --- | --- |
-| 配置文件 | `%APPDATA%\RolanClone\config.json` |
-| 图标缓存 | `%LOCALAPPDATA%\RolanClone\icons` |
+| 配置文件 | `%APPDATA%\LaunchDock\config.json` |
+| 图标缓存 | `%LOCALAPPDATA%\LaunchDock\icons` |
 | 便签（默认） | 程序所在目录下的 `Notes` 文件夹，可在「设置 → 概要 → 便签」修改 |
 
 配置采用原子写入（临时文件 + 替换），图标缓存会按目标路径与修改时间失效重建。
 
 ## 说明
 
-- 界面布局参考 Rolan，代码为本项目原创实现，与 Rolan 官方无关。
-- 程序集名与配置目录仍沿用 `RolanClone` 命名以保持配置兼容，界面显示名称为「启坞 LaunchDock」。
+- 界面与交互为本项目原创设计，代码为本项目原创实现。
+- 程序集名与配置目录统一使用 `LaunchDock`，界面显示名称为「启坞 LaunchDock」。
 
 ## 许可证
 
