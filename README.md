@@ -38,6 +38,10 @@ src/
   LaunchDock.App/       # Avalonia 界面：启动板、设置、应用库、便签、关于
 ```
 
+## 下载
+
+最新 Windows x64 便携版请到 [Releases](https://github.com/cnmahu/LaunchDock/releases/latest) 下载，解压后运行 `LaunchDock.exe` 即可。
+
 ## 构建与运行
 
 要求：Windows 10 1809+（内部版本 19041 及以上）、.NET 8 SDK。

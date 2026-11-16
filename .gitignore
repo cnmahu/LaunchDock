@@ -28,6 +28,9 @@ publish/
 # 运行期数据（便签默认保存在程序目录下）
 Notes/
 
+# 便携版安装包改由 GitHub Release 附件分发，不再提交二进制
+dist/
+
 # 系统文件
 Thumbs.db
 desktop.ini
