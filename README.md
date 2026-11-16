@@ -4,7 +4,7 @@
 
 启坞是一款 Windows 桌面快捷菜单与启动效率工具。你可以把常用应用、文件、文件夹、网页链接和命令统一收纳进启动坞，按工作、学习、设计、开发等场景自由分组；需要时通过全局热键一键呼出，点击即可启动，不必回到桌面翻找。
 
-本项目基于 **.NET 8 + Avalonia** 从零实现，用于学习桌面 UI 框架与 Windows Shell 集成。
+本项目基于 **.NET 10 + Avalonia** 从零实现，用于学习桌面 UI 框架与 Windows Shell 集成。
 
 ## 功能
 
@@ -23,7 +23,7 @@
 
 | 项目 | 说明 |
 | --- | --- |
-| 运行时 | .NET 8（`net8.0-windows10.0.19041.0`） |
+| 运行时 | .NET 10（`net10.0-windows10.0.19041.0`） |
 | UI | Avalonia 11.3（Fluent 主题、ThemeDictionaries 明暗主题） |
 | 平台 | Win32 P/Invoke（图标提取、全局热键、鼠标钩子、窗口材质） |
 | 商店应用 | WinRT `PackageManager` / `Package.GetAppListEntries()` |
@@ -44,7 +44,7 @@ src/
 
 ## 构建与运行
 
-要求：Windows 10 1809+（内部版本 19041 及以上）、.NET 8 SDK。
+要求：Windows 10 1809+（内部版本 19041 及以上）、.NET 10 SDK。
 
 ```powershell
 dotnet build LaunchDock.sln -c Debug
