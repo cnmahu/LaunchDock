@@ -7,5 +7,8 @@
     <LangVersion>latest</LangVersion>
     <RootNamespace>LaunchDock.Core</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="LaunchDock.Core.Tests" />
+  </ItemGroup>
 
 </Project>

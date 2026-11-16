@@ -411,35 +411,51 @@ public partial class LauncherWindow : Window
         var height = (int)Math.Round(Height * scale);
         var current = Position;
 
-        var x = current.X;
-        var y = current.Y;
-
-        if (Math.Abs(current.X - area.X) <= SnapThreshold)
-        {
-            x = area.X;
-        }
-        else if (Math.Abs(area.Right - (current.X + width)) <= SnapThreshold)
-        {
-            x = area.Right - width;
-        }
-
-        if (Math.Abs(current.Y - area.Y) <= SnapThreshold)
-        {
-            y = area.Y;
-        }
-        else if (Math.Abs(area.Bottom - (current.Y + height)) <= SnapThreshold)
-        {
-            y = area.Bottom - height;
-        }
-
-        if (x == current.X && y == current.Y)
+        var snapped = ComputeSnapPosition(current, area, width, height);
+        if (snapped is null)
         {
             return;
         }
 
         _suppressSnap = true;
-        Position = new PixelPoint(x, y);
+        Position = snapped.Value;
         _suppressSnap = false;
+    }
+
+    /// <summary>
+    /// 计算工作区四边的吸附坐标；不在阈值（12px）内时返回 null。
+    /// 纯计算部分独立成静态方法，便于单元测试。
+    /// </summary>
+    internal static PixelPoint? ComputeSnapPosition(
+        PixelPoint position, PixelRect workingArea, int windowWidth, int windowHeight)
+    {
+        var x = position.X;
+        var y = position.Y;
+
+        if (Math.Abs(position.X - workingArea.X) <= SnapThreshold)
+        {
+            x = workingArea.X;
+        }
+        else if (Math.Abs(workingArea.Right - (position.X + windowWidth)) <= SnapThreshold)
+        {
+            x = workingArea.Right - windowWidth;
+        }
+
+        if (Math.Abs(position.Y - workingArea.Y) <= SnapThreshold)
+        {
+            y = workingArea.Y;
+        }
+        else if (Math.Abs(workingArea.Bottom - (position.Y + windowHeight)) <= SnapThreshold)
+        {
+            y = workingArea.Bottom - windowHeight;
+        }
+
+        if (x == position.X && y == position.Y)
+        {
+            return null;
+        }
+
+        return new PixelPoint(x, y);
     }
 
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
@@ -1270,7 +1286,8 @@ public partial class LauncherWindow : Window
         e.Handled = true;
     }
 
-    private static ItemModel CreateItemFromPath(string path)
+    /// <summary>从拖入的路径构造配置条目模型；internal 以便单元测试。</summary>
+    internal static ItemModel CreateItemFromPath(string path)
     {
         var isDirectory = Directory.Exists(path);
         var extension = Path.GetExtension(path).ToLowerInvariant();

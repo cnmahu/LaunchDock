@@ -205,7 +205,7 @@ public sealed class NotesViewModel : ViewModelBase
         {
             Directory.CreateDirectory(directory);
 
-            var path = MakeUniquePath(directory, "新便签");
+            var path = PathNaming.MakeUniquePath(directory, "新便签.txt");
             File.WriteAllText(path, string.Empty);
 
             var item = new NoteItem(path);
@@ -248,7 +248,7 @@ public sealed class NotesViewModel : ViewModelBase
             return true;
         }
 
-        var target = MakeUniquePath(directory, title);
+        var target = PathNaming.MakeUniquePath(directory, title + ".txt");
         try
         {
             File.Move(note.FilePath, target);
@@ -318,7 +318,7 @@ public sealed class NotesViewModel : ViewModelBase
             return;
         }
 
-        var target = MakeUniquePath(directory, title);
+        var target = PathNaming.MakeUniquePath(directory, title + ".txt");
         try
         {
             File.Move(note.FilePath, target);
@@ -381,17 +381,6 @@ public sealed class NotesViewModel : ViewModelBase
         }
 
         return false;
-    }
-
-    private static string MakeUniquePath(string directory, string title)
-    {
-        var path = Path.Combine(directory, title + ".txt");
-        for (var index = 2; File.Exists(path); index++)
-        {
-            path = Path.Combine(directory, $"{title} ({index}).txt");
-        }
-
-        return path;
     }
 
     private static string ReadNote(NoteItem? note)

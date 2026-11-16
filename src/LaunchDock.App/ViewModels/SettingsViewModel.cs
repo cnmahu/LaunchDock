@@ -147,13 +147,13 @@ public sealed class SettingsViewModel : ViewModelBase
     public bool TopMost
     {
         get => _settings.TopMost;
-        set => SetBool(() => _settings.TopMost, v => _settings.TopMost = v, value);
+        set => SetSetting(() => _settings.TopMost, v => _settings.TopMost = v, value);
     }
 
     public bool Blur
     {
         get => _settings.Blur;
-        set => SetBool(() => _settings.Blur, v => _settings.Blur = v, value);
+        set => SetSetting(() => _settings.Blur, v => _settings.Blur = v, value);
     }
 
     public double Opacity
@@ -167,16 +167,8 @@ public sealed class SettingsViewModel : ViewModelBase
                 return;
             }
 
-            var clamped = Math.Clamp(value, 0.5, 1.0);
-            if (Math.Abs(_settings.Opacity - clamped) < 0.001)
-            {
-                return;
-            }
-
-            _settings.Opacity = clamped;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(OpacityLabel));
-            _onChanged();
+            SetNumber(() => _settings.Opacity, v => _settings.Opacity = v,
+                Math.Clamp(value, 0.5, 1.0), 0.001, nameof(OpacityLabel));
         }
     }
 
@@ -185,36 +177,15 @@ public sealed class SettingsViewModel : ViewModelBase
     public int ThemeIndex
     {
         get => (int)_settings.Theme;
-        set
-        {
-            var theme = (AppTheme)Math.Clamp(value, 0, 2);
-            if (_settings.Theme == theme)
-            {
-                return;
-            }
-
-            _settings.Theme = theme;
-            ApplyTheme(theme);
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.Theme, v => _settings.Theme = v,
+            (AppTheme)Math.Clamp(value, 0, 2), ApplyTheme);
     }
 
     public int MaterialIndex
     {
         get => (int)_settings.Material;
-        set
-        {
-            var material = (WindowMaterial)Math.Clamp(value, 0, 2);
-            if (_settings.Material == material)
-            {
-                return;
-            }
-
-            _settings.Material = material;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.Material, v => _settings.Material = v,
+            (WindowMaterial)Math.Clamp(value, 0, 2));
     }
 
     public static void ApplyTheme(AppTheme theme)
@@ -280,36 +251,15 @@ public sealed class SettingsViewModel : ViewModelBase
     public int LayoutIndex
     {
         get => _settings.Layout == PanelLayout.Vertical ? 1 : 0;
-        set
-        {
-            var target = value == 1 ? PanelLayout.Vertical : PanelLayout.Horizontal;
-            if (_settings.Layout == target)
-            {
-                return;
-            }
-
-            _settings.Layout = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.Layout, v => _settings.Layout = v,
+            value == 1 ? PanelLayout.Vertical : PanelLayout.Horizontal);
     }
 
     public double IconSizePx
     {
         get => _settings.IconSizePx;
-        set
-        {
-            var rounded = Math.Clamp(Math.Round(value), 24, 96);
-            if (Math.Abs(_settings.IconSizePx - rounded) < 0.5)
-            {
-                return;
-            }
-
-            _settings.IconSizePx = (int)rounded;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IconSizeLabel));
-            _onChanged();
-        }
+        set => SetNumber(() => _settings.IconSizePx, v => _settings.IconSizePx = (int)v,
+            Math.Clamp(Math.Round(value), 24, 96), 0.5, nameof(IconSizeLabel));
     }
 
     public string IconSizeLabel => $"{_settings.IconSizePx} px";
@@ -317,19 +267,8 @@ public sealed class SettingsViewModel : ViewModelBase
     public double IconSpacing
     {
         get => _settings.IconSpacing;
-        set
-        {
-            var rounded = Math.Clamp(Math.Round(value), 0, 48);
-            if (Math.Abs(_settings.IconSpacing - rounded) < 0.5)
-            {
-                return;
-            }
-
-            _settings.IconSpacing = rounded;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IconSpacingLabel));
-            _onChanged();
-        }
+        set => SetNumber(() => _settings.IconSpacing, v => _settings.IconSpacing = v,
+            Math.Clamp(Math.Round(value), 0, 48), 0.5, nameof(IconSpacingLabel));
     }
 
     public string IconSpacingLabel => $"{_settings.IconSpacing:0} px";
@@ -342,82 +281,61 @@ public sealed class SettingsViewModel : ViewModelBase
             LabelPosition.Right => 1,
             _ => 2
         };
-        set
+        set => SetSetting(() => _settings.LabelPosition, v => _settings.LabelPosition = v, value switch
         {
-            var target = value switch
-            {
-                0 => LabelPosition.Bottom,
-                1 => LabelPosition.Right,
-                _ => LabelPosition.None
-            };
-            if (_settings.LabelPosition == target)
-            {
-                return;
-            }
-
-            _settings.LabelPosition = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+            0 => LabelPosition.Bottom,
+            1 => LabelPosition.Right,
+            _ => LabelPosition.None
+        });
     }
 
     public bool EdgeSnap
     {
         get => _settings.EdgeSnap;
-        set => SetBool(() => _settings.EdgeSnap, v => _settings.EdgeSnap = v, value);
+        set => SetSetting(() => _settings.EdgeSnap, v => _settings.EdgeSnap = v, value);
     }
 
     public bool LockPosition
     {
         get => _settings.LockPosition;
-        set => SetBool(() => _settings.LockPosition, v => _settings.LockPosition = v, value);
+        set => SetSetting(() => _settings.LockPosition, v => _settings.LockPosition = v, value);
     }
 
     public bool HideOnLostFocus
     {
         get => _settings.HideOnLostFocus;
-        set => SetBool(() => _settings.HideOnLostFocus, v => _settings.HideOnLostFocus = v, value);
+        set => SetSetting(() => _settings.HideOnLostFocus, v => _settings.HideOnLostFocus = v, value);
     }
 
     public bool HideAfterLaunch
     {
         get => _settings.HideAfterLaunch;
-        set => SetBool(() => _settings.HideAfterLaunch, v => _settings.HideAfterLaunch = v, value);
+        set => SetSetting(() => _settings.HideAfterLaunch, v => _settings.HideAfterLaunch = v, value);
     }
 
     public bool HideOnEmptyDoubleClick
     {
         get => _settings.HideOnEmptyDoubleClick;
-        set => SetBool(() => _settings.HideOnEmptyDoubleClick, v => _settings.HideOnEmptyDoubleClick = v, value);
+        set => SetSetting(() => _settings.HideOnEmptyDoubleClick, v => _settings.HideOnEmptyDoubleClick = v, value);
     }
 
     public bool CtrlPreventHide
     {
         get => _settings.CtrlPreventHide;
-        set => SetBool(() => _settings.CtrlPreventHide, v => _settings.CtrlPreventHide = v, value);
+        set => SetSetting(() => _settings.CtrlPreventHide, v => _settings.CtrlPreventHide = v, value);
     }
 
     public bool StartHidden
     {
         get => _settings.StartHidden;
-        set => SetBool(() => _settings.StartHidden, v => _settings.StartHidden = v, value);
+        set => SetSetting(() => _settings.StartHidden, v => _settings.StartHidden = v, value);
     }
 
     public int CloseBehaviorIndex
     {
         get => _settings.CloseBehavior == CloseBehavior.Exit ? 1 : 0;
-        set
-        {
-            var target = value == 1 ? CloseBehavior.Exit : CloseBehavior.MinimizeToTray;
-            if (_settings.CloseBehavior == target)
-            {
-                return;
-            }
-
-            _settings.CloseBehavior = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.CloseBehavior, v => _settings.CloseBehavior = v,
+            value == 1 ? CloseBehavior.Exit : CloseBehavior.MinimizeToTray);
     }
 
     public int FontFamilyIndex
@@ -453,19 +371,8 @@ public sealed class SettingsViewModel : ViewModelBase
     public double FontSize
     {
         get => _settings.FontSize;
-        set
-        {
-            var clamped = Math.Clamp(Math.Round(value), MinFontSize, MaxFontSize);
-            if (Math.Abs(_settings.FontSize - clamped) < 0.01)
-            {
-                return;
-            }
-
-            _settings.FontSize = clamped;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(FontSizeLabel));
-            _onChanged();
-        }
+        set => SetNumber(() => _settings.FontSize, v => _settings.FontSize = v,
+            Math.Clamp(Math.Round(value), MinFontSize, MaxFontSize), 0.01, nameof(FontSizeLabel));
     }
 
     public string FontSizeLabel => $"{_settings.FontSize:0}";
@@ -473,35 +380,15 @@ public sealed class SettingsViewModel : ViewModelBase
     public int FontWeightIndex
     {
         get => (int)_settings.FontWeight;
-        set
-        {
-            var target = (AppFontWeight)Math.Clamp(value, 0, 4);
-            if (_settings.FontWeight == target)
-            {
-                return;
-            }
-
-            _settings.FontWeight = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.FontWeight, v => _settings.FontWeight = v,
+            (AppFontWeight)Math.Clamp(value, 0, 4));
     }
 
     public bool AutoStart
     {
         get => _settings.AutoStart;
-        set
-        {
-            if (_settings.AutoStart == value)
-            {
-                return;
-            }
-
-            _settings.AutoStart = value;
-            AutostartManager.SetEnabled(value);
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.AutoStart, v => _settings.AutoStart = v, value,
+            v => AutostartManager.SetEnabled(v));
     }
 
     public string Hotkey
@@ -522,83 +409,51 @@ public sealed class SettingsViewModel : ViewModelBase
     public bool EnableHotkey
     {
         get => _settings.EnableHotkey;
-        set => SetBool(() => _settings.EnableHotkey, v => _settings.EnableHotkey = v, value);
+        set => SetSetting(() => _settings.EnableHotkey, v => _settings.EnableHotkey = v, value);
     }
 
     public int ShowPositionIndex
     {
         get => (int)_settings.ShowPosition;
-        set
-        {
-            var target = (ShowPosition)Math.Clamp(value, 0, 2);
-            if (_settings.ShowPosition == target)
-            {
-                return;
-            }
-
-            _settings.ShowPosition = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.ShowPosition, v => _settings.ShowPosition = v,
+            (ShowPosition)Math.Clamp(value, 0, 2));
     }
 
     public int OpenModeIndex
     {
         get => _settings.SingleClickRun ? 0 : 1;
-        set
-        {
-            var target = value != 1;
-            if (_settings.SingleClickRun == target)
-            {
-                return;
-            }
-
-            _settings.SingleClickRun = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.SingleClickRun, v => _settings.SingleClickRun = v, value != 1);
     }
 
     /// <summary>图标排序：0 保持手动顺序，1 按使用频率从多到少。</summary>
     public int SortModeIndex
     {
         get => _settings.AutoSortByUsage ? 1 : 0;
-        set
-        {
-            var target = value == 1;
-            if (_settings.AutoSortByUsage == target)
-            {
-                return;
-            }
-
-            _settings.AutoSortByUsage = target;
-            OnPropertyChanged();
-            _onChanged();
-        }
+        set => SetSetting(() => _settings.AutoSortByUsage, v => _settings.AutoSortByUsage = v, value == 1);
     }
 
     public bool ShowOnXButton1
     {
         get => _settings.ShowOnXButton1;
-        set => SetBool(() => _settings.ShowOnXButton1, v => _settings.ShowOnXButton1 = v, value);
+        set => SetSetting(() => _settings.ShowOnXButton1, v => _settings.ShowOnXButton1 = v, value);
     }
 
     public bool ShowOnXButton2
     {
         get => _settings.ShowOnXButton2;
-        set => SetBool(() => _settings.ShowOnXButton2, v => _settings.ShowOnXButton2 = v, value);
+        set => SetSetting(() => _settings.ShowOnXButton2, v => _settings.ShowOnXButton2 = v, value);
     }
 
     public bool ShowOnMiddleClick
     {
         get => _settings.ShowOnMiddleClick;
-        set => SetBool(() => _settings.ShowOnMiddleClick, v => _settings.ShowOnMiddleClick = v, value);
+        set => SetSetting(() => _settings.ShowOnMiddleClick, v => _settings.ShowOnMiddleClick = v, value);
     }
 
     public bool CloseOnEsc
     {
         get => _settings.CloseOnEsc;
-        set => SetBool(() => _settings.CloseOnEsc, v => _settings.CloseOnEsc = v, value);
+        set => SetSetting(() => _settings.CloseOnEsc, v => _settings.CloseOnEsc = v, value);
     }
 
     public bool HasPassword => !string.IsNullOrWhiteSpace(_settings.LockPasswordHash);
@@ -608,7 +463,7 @@ public sealed class SettingsViewModel : ViewModelBase
     public bool AutoLock
     {
         get => _settings.AutoLock;
-        set => SetBool(() => _settings.AutoLock, v => _settings.AutoLock = v, value);
+        set => SetSetting(() => _settings.AutoLock, v => _settings.AutoLock = v, value);
     }
 
     public void SetPassword(string password)
@@ -633,15 +488,48 @@ public sealed class SettingsViewModel : ViewModelBase
         _onChanged();
     }
 
-    private void SetBool(Func<bool> get, Action<bool> set, bool value, [CallerMemberName] string? propertyName = null)
+    /// <summary>“相同值短路 → 赋值 → 附加动作 → 通知 → 保存”的统一写入样板，收敛各设置项的重复逻辑。</summary>
+    private void SetSetting<T>(
+        Func<T> get,
+        Action<T> set,
+        T value,
+        Action<T>? afterApply = null,
+        string? extraNotification = null,
+        [CallerMemberName] string? propertyName = null)
     {
-        if (get() == value)
+        if (EqualityComparer<T>.Default.Equals(get(), value))
         {
             return;
         }
 
         set(value);
+        afterApply?.Invoke(value);
         OnPropertyChanged(propertyName);
+        if (extraNotification is not null)
+        {
+            OnPropertyChanged(extraNotification);
+        }
+
+        _onChanged();
+    }
+
+    /// <summary>数值设置写入：按容差比较（浮点微小抖动不触发保存），变化时同时通知展示标签。</summary>
+    private void SetNumber(
+        Func<double> get,
+        Action<double> set,
+        double clamped,
+        double epsilon,
+        string labelName,
+        [CallerMemberName] string? propertyName = null)
+    {
+        if (Math.Abs(get() - clamped) < epsilon)
+        {
+            return;
+        }
+
+        set(clamped);
+        OnPropertyChanged(propertyName);
+        OnPropertyChanged(labelName);
         _onChanged();
     }
 }

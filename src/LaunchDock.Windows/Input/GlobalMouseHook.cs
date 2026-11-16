@@ -16,9 +16,11 @@ public sealed class GlobalMouseHook : IDisposable
     private readonly Thread _thread;
     private readonly ManualResetEventSlim _ready = new(false);
     private readonly HookProc _proc;
-    private uint _threadId;
+    // 与 GlobalHotkey 相同：跨线程读取需要 volatile 保证可见性
+    private volatile uint _threadId;
     private IntPtr _hook;
     private volatile bool _running = true;
+    private bool _disposed;
 
     public GlobalMouseHook()
     {
@@ -87,13 +89,23 @@ public sealed class GlobalMouseHook : IDisposable
         return CallNextHookEx(_hook, nCode, wParam, lParam);
     }
 
+    /// <summary>幂等的释放：通知消息循环退出并等待线程收尾，确保钩子已卸载。</summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         _running = false;
+
         if (_threadId != 0)
         {
             PostThreadMessage(_threadId, WmQuit, IntPtr.Zero, IntPtr.Zero);
         }
+
+        _thread.Join(500);
     }
 
     private delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);

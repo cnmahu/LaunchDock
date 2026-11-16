@@ -10,6 +10,9 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
 {
     private readonly Dictionary<string, FileSystemWatcher> _watchers = new();
     private readonly Dictionary<string, CancellationTokenSource> _refreshTokens = new();
+    // FileSystemWatcher 的事件在线程池线程触发 ScheduleRefresh，与 UI 线程的
+    // StopWatcher/Dispose 并发访问 _refreshTokens，普通 Dictionary 需要加锁保护
+    private readonly object _refreshLock = new();
     private TabViewModel? _selectedTab;
     private string _searchText = string.Empty;
     private bool _isSearchActive;
@@ -170,7 +173,7 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
                             continue;
                         }
 
-                        CopyDirectory(path, MakeUniquePath(destination, Path.GetFileName(path), isDirectory: true));
+                        CopyDirectory(path, PathNaming.MakeUniquePath(destination, Path.GetFileName(path), isDirectory: true));
                         count++;
                     }
                     else if (File.Exists(path))
@@ -180,7 +183,7 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
                             continue;
                         }
 
-                        File.Copy(path, MakeUniquePath(destination, Path.GetFileName(path), isDirectory: false), overwrite: false);
+                        File.Copy(path, PathNaming.MakeUniquePath(destination, Path.GetFileName(path)), overwrite: false);
                         count++;
                     }
                 }
@@ -218,7 +221,7 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
         }
 
         var destination = Path.Combine(parent, newName);
-        if (PathExists(destination))
+        if (PathNaming.Exists(destination))
         {
             return false;
         }
@@ -277,29 +280,6 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
                || fullPath.StartsWith(fullFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
                || fullFolder.StartsWith(fullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
-
-    private static string MakeUniquePath(string directory, string name, bool isDirectory)
-    {
-        var target = Path.Combine(directory, name);
-        if (!PathExists(target))
-        {
-            return target;
-        }
-
-        var stem = isDirectory ? name : Path.GetFileNameWithoutExtension(name);
-        var extension = isDirectory ? string.Empty : Path.GetExtension(name);
-
-        for (var i = 2; ; i++)
-        {
-            target = Path.Combine(directory, $"{stem} ({i}){extension}");
-            if (!PathExists(target))
-            {
-                return target;
-            }
-        }
-    }
-
-    private static bool PathExists(string path) => File.Exists(path) || Directory.Exists(path);
 
     private static void CopyDirectory(string source, string destination)
     {
@@ -425,23 +405,31 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
             watcher.Dispose();
         }
 
-        if (_refreshTokens.Remove(tabId, out var token))
+        lock (_refreshLock)
         {
-            token.Cancel();
-            token.Dispose();
+            if (_refreshTokens.Remove(tabId, out var token))
+            {
+                token.Cancel();
+                token.Dispose();
+            }
         }
     }
 
-    private void ScheduleRefresh(TabViewModel tab)
+    /// <summary>为分组安排一次去抖刷新；internal 以便测试确定性触发（不依赖 FileSystemWatcher 事件时序）。</summary>
+    internal void ScheduleRefresh(TabViewModel tab)
     {
-        if (_refreshTokens.Remove(tab.Id, out var previous))
+        CancellationTokenSource tokenSource;
+        lock (_refreshLock)
         {
-            previous.Cancel();
-            previous.Dispose();
-        }
+            if (_refreshTokens.Remove(tab.Id, out var previous))
+            {
+                previous.Cancel();
+                previous.Dispose();
+            }
 
-        var tokenSource = new CancellationTokenSource();
-        _refreshTokens[tab.Id] = tokenSource;
+            tokenSource = new CancellationTokenSource();
+            _refreshTokens[tab.Id] = tokenSource;
+        }
 
         _ = Task.Run(async () =>
         {
@@ -456,10 +444,31 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
 
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                if (_refreshTokens.TryGetValue(tab.Id, out var current) && ReferenceEquals(current, tokenSource))
+                lock (_refreshLock)
                 {
-                    RefreshLiveFolder(tab);
+                    if (!_refreshTokens.TryGetValue(tab.Id, out var current)
+                        || !ReferenceEquals(current, tokenSource))
+                    {
+                        return;
+                    }
                 }
+
+                // 防御 RemoveTab 之后才送达的迟到事件：分组已无活动监视器时不再刷新，
+                // 并清掉这条孤儿令牌，避免其滞留到 Dispose
+                if (!_watchers.ContainsKey(tab.Id))
+                {
+                    lock (_refreshLock)
+                    {
+                        if (_refreshTokens.Remove(tab.Id, out var stale))
+                        {
+                            stale.Dispose();
+                        }
+                    }
+
+                    return;
+                }
+
+                RefreshLiveFolder(tab);
             });
         });
     }
@@ -472,7 +481,19 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
         }
 
         _watchers.Clear();
-        _refreshTokens.Clear();
+
+        List<CancellationTokenSource> pending;
+        lock (_refreshLock)
+        {
+            pending = _refreshTokens.Values.ToList();
+            _refreshTokens.Clear();
+        }
+
+        foreach (var token in pending)
+        {
+            token.Cancel();
+            token.Dispose();
+        }
     }
 
     public void RemoveTab(TabViewModel tab)

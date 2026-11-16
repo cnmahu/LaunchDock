@@ -17,6 +17,7 @@ public sealed class ItemViewModel : ViewModelBase
     };
 
     private Bitmap? _icon;
+    private int _iconLoadVersion;
     private double _iconSize = 48;
     private double _tileWidth = 100;
     private double _tileHeight = 96;
@@ -25,10 +26,21 @@ public sealed class ItemViewModel : ViewModelBase
     private Orientation _labelOrientation = Orientation.Vertical;
     private HorizontalAlignment _labelAlignment = HorizontalAlignment.Center;
 
+    /// <summary>图标位图加载器；生产默认走磁盘缓存，测试可注入确定性实现。</summary>
+    private readonly Func<string, string?, Task<Bitmap?>> _loadIconAsync;
+
     public ItemViewModel(ItemModel model, int colorIndex, bool isLive = false)
+        : this(model, colorIndex, LoadIconFromDiskAsync, isLive)
+    {
+    }
+
+    /// <summary>测试专用构造：注入图标加载器以确定性控制加载时序。</summary>
+    internal ItemViewModel(ItemModel model, int colorIndex,
+        Func<string, string?, Task<Bitmap?>> loadIconAsync, bool isLive = false)
     {
         Model = model;
         IsLive = isLive;
+        _loadIconAsync = loadIconAsync;
         Initials = BuildInitials(model.DisplayName);
         Accent = new SolidColorBrush(Color.Parse(Palette[colorIndex % Palette.Length]));
         _ = LoadIconAsync(model.Target, model.CustomIcon);
@@ -152,14 +164,37 @@ public sealed class ItemViewModel : ViewModelBase
 
     private async Task LoadIconAsync(string target, string? customIcon)
     {
-        var bitmap = await Task.Run(() =>
-        {
-            var path = IconService.GetIconPath(target, customIcon);
-            if (path is null)
-            {
-                return null;
-            }
+        // 版本号防竞态：RefreshIcon 触发的新一轮加载完成后，旧一轮的迟到结果不再覆盖
+        var version = Interlocked.Increment(ref _iconLoadVersion);
 
+        var bitmap = await _loadIconAsync(target, customIcon);
+
+        if (bitmap is null || Volatile.Read(ref _iconLoadVersion) != version)
+        {
+            return;
+        }
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            if (Volatile.Read(ref _iconLoadVersion) == version)
+            {
+                Icon = bitmap;
+            }
+        });
+    }
+
+    private static async Task<Bitmap?> LoadIconFromDiskAsync(string target, string? customIcon)
+    {
+        // 异步管线：等待 STA 提取期间线程归还线程池，数百条目启动不再占满线程池
+        var path = await IconService.GetIconPathAsync(target, customIcon);
+        if (path is null)
+        {
+            return null;
+        }
+
+        // 位图解码同样留在后台线程，避免挤占 UI 线程
+        return await Task.Run(() =>
+        {
             try
             {
                 return new Bitmap(path);
@@ -169,11 +204,6 @@ public sealed class ItemViewModel : ViewModelBase
                 return null;
             }
         });
-
-        if (bitmap is not null)
-        {
-            await Dispatcher.UIThread.InvokeAsync(() => Icon = bitmap);
-        }
     }
 
     private static string BuildInitials(string name)

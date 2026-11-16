@@ -11,6 +11,7 @@
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
     <RootNamespace>LaunchDock.App</RootNamespace>
     <AssemblyName>LaunchDock</AssemblyName>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,9 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="LaunchDock.App.Tests" />
   </ItemGroup>
 
 </Project>

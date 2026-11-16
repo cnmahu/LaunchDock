@@ -9,9 +9,17 @@ namespace LaunchDock.Windows.Icons;
 /// </summary>
 public static class IconService
 {
-    private static readonly string CacheDirectory = Path.Combine(
+    private static string? _cacheDirectoryOverrideForTests;
+
+    /// <summary>仅测试使用：重定向图标缓存目录（传 null 复位）。生产代码不调用。</summary>
+    internal static void SetCacheDirectoryForTests(string? directory) =>
+        _cacheDirectoryOverrideForTests = directory;
+
+    private static string DefaultCacheDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "LaunchDock", "icons");
+
+    internal static string CacheDirectory => _cacheDirectoryOverrideForTests ?? DefaultCacheDirectory;
 
     // .msc 这类文件的图标由内嵌图标处理程序提供，必须在 STA 线程提取，
     // 线程池线程是 MTA，直接提取只会得到通用的“空白文档”图标。
@@ -37,11 +45,90 @@ public static class IconService
     /// <summary>返回缓存 PNG 的完整路径；无法提取时返回 null。</summary>
     public static string? GetIconPath(string target, string? customIcon = null)
     {
+        var (resolved, cached, pngPath) = Lookup(target, customIcon);
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var data = ExtractOnSta(resolved, 256);
+        if (data is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            SaveToCache(pngPath!, data);
+            return pngPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// GetIconPath 的异步版本：解析与缓存探测在线程池执行，等待 STA 工人提取时
+    /// 调用方线程立即归还线程池（旧实现是阻塞等待），数百个图标并发加载
+    /// 不会再把线程池占满。缓存命中时直接返回已存在的路径。
+    /// </summary>
+    public static async Task<string?> GetIconPathAsync(string target, string? customIcon = null)
+    {
+        var (resolved, cached, pngPath) = await Task.Run(() => Lookup(target, customIcon));
+
+        if (resolved is null)
+        {
+            return null;
+        }
+
+        if (cached is not null)
+        {
+            return cached;
+        }
+
+        var data = await ExtractOnStaAsync(resolved, 256);
+        if (data is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            await Task.Run(() => SaveToCache(pngPath!, data));
+            return pngPath;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static void SaveToCache(string pngPath, byte[] data)
+    {
+        Directory.CreateDirectory(CacheDirectory);
+        var temp = pngPath + ".tmp";
+        File.WriteAllBytes(temp, data);
+        File.Move(temp, pngPath, overwrite: true);
+    }
+
+    /// <summary>
+    /// 定位缓存条目：解析目标、计算缓存键。resolved 为 null 表示目标不可解析；
+    /// cached 非 null 表示缓存命中（此时 cached 与 pngPath 相同）。
+    /// </summary>
+    private static (string? Resolved, string? Cached, string? PngPath) Lookup(
+        string target, string? customIcon)
+    {
         var source = string.IsNullOrWhiteSpace(customIcon) ? target : customIcon;
         var resolved = ResolvePath(source);
         if (resolved is null)
         {
-            return null;
+            return (null, null, null);
         }
 
         long stamp;
@@ -63,30 +150,7 @@ public static class IconService
             Encoding.UTF8.GetBytes($"{resolved.ToLowerInvariant()}|{stamp}|256|v3"))).ToLowerInvariant();
 
         var pngPath = Path.Combine(CacheDirectory, key + ".png");
-        if (File.Exists(pngPath))
-        {
-            return pngPath;
-        }
-
-        var data = ExtractOnSta(resolved, 256);
-
-        if (data is null)
-        {
-            return null;
-        }
-
-        try
-        {
-            Directory.CreateDirectory(CacheDirectory);
-            var temp = pngPath + ".tmp";
-            File.WriteAllBytes(temp, data);
-            File.Move(temp, pngPath, overwrite: true);
-            return pngPath;
-        }
-        catch
-        {
-            return null;
-        }
+        return File.Exists(pngPath) ? (resolved, pngPath, pngPath) : (resolved, null, pngPath);
     }
 
     private static string? ResolvePath(string target)
@@ -166,11 +230,12 @@ public static class IconService
                 data = null;
             }
 
-            request.Complete(data);
+            // TrySetResult 防御进程关闭时的完成竞争
+            request.Completion.TrySetResult(data);
         }
     }
 
-    /// <summary>Shell 图标统一在 STA 线程提取，调用方线程会等待结果。</summary>
+    /// <summary>Shell 图标统一在 STA 线程提取；同步版本会阻塞调用线程直至提取完成。</summary>
     private static byte[]? ExtractOnSta(string path, int size)
     {
         if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
@@ -178,29 +243,32 @@ public static class IconService
             return IconExtractor.ExtractPng(path, size);
         }
 
-        using var completed = new ManualResetEventSlim();
-        byte[]? result = null;
-        Requests.Add(new ExtractionRequest(path, size, data =>
-        {
-            result = data;
-            completed.Set();
-        }));
-        completed.Wait();
-        return result;
+        var request = new ExtractionRequest(path, size);
+        Requests.Add(request);
+        return request.Completion.Task.GetAwaiter().GetResult();
+    }
+
+    /// <summary>异步版本：入队即返回，等待提取期间不占用任何线程。</summary>
+    private static Task<byte[]?> ExtractOnStaAsync(string path, int size)
+    {
+        var request = new ExtractionRequest(path, size);
+        Requests.Add(request);
+        return request.Completion.Task;
     }
 
     private sealed class ExtractionRequest
     {
-        public ExtractionRequest(string path, int size, Action<byte[]?> complete)
+        public ExtractionRequest(string path, int size)
         {
             Path = path;
             Size = size;
-            Complete = complete;
+            // 完成回调放到线程池执行，避免 continuation 挤占 STA 工人线程
+            Completion = new TaskCompletionSource<byte[]?>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
 
         public string Path { get; }
         public int Size { get; }
-        public Action<byte[]?> Complete { get; }
+        public TaskCompletionSource<byte[]?> Completion { get; }
     }
 }
-

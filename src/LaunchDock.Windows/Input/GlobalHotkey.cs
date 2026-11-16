@@ -13,9 +13,12 @@ public sealed class GlobalHotkey : IDisposable
 
     private readonly Thread _thread;
     private readonly ManualResetEventSlim _ready = new(false);
-    private uint _threadId;
+    // _threadId / _registered 由热键线程写入、其它线程在 Dispose/IsRegistered 中读取，
+    // 必须 volatile 保证可见性（否则 Dispose 可能读到 0 而漏发 WM_QUIT，线程滞留在消息循环）
+    private volatile uint _threadId;
     private volatile bool _running = true;
-    private bool _registered;
+    private volatile bool _registered;
+    private bool _disposed;
 
     public GlobalHotkey(string gesture)
     {
@@ -60,13 +63,25 @@ public sealed class GlobalHotkey : IDisposable
         }
     }
 
+    /// <summary>幂等的释放：通知消息循环退出并等待线程收尾，确保热键已注销。</summary>
     public void Dispose()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
         _running = false;
+
         if (_threadId != 0)
         {
             PostThreadMessage(_threadId, WmQuit, IntPtr.Zero, IntPtr.Zero);
         }
+
+        // _threadId 尚为 0（就绪超时）时线程还没进入 GetMessage，
+        // _running = false 已足够让其跳过消息循环并注销热键
+        _thread.Join(500);
     }
 
     /// <summary>符号键（主键盘区）到虚拟键码的映射，用于识别 Ctrl+` 这类热键。</summary>
@@ -86,61 +101,23 @@ public sealed class GlobalHotkey : IDisposable
     };
 
     /// <summary>校验热键格式：必须包含至少一个修饰键和一个可识别的按键。</summary>
-    public static bool IsValid(string gesture)
+    public static bool IsValid(string gesture) =>
+        TryParseGesture(gesture, out var modifiers, out _) && modifiers != 0;
+
+    private static (uint Modifiers, uint VirtualKey) ParseGesture(string gesture) =>
+        TryParseGesture(gesture, out var modifiers, out var virtualKey)
+            ? (modifiers, virtualKey)
+            : (0, 0x20);
+
+    /// <summary>
+    /// 单一解析核心：识别修饰键与按键，遇到无法识别的片段返回 false。
+    /// IsValid 与 ParseGesture 共用此方法，新增按键类型时只需改这一处。
+    /// </summary>
+    private static bool TryParseGesture(string gesture, out uint modifiers, out uint virtualKey)
     {
-        uint modifiers = 0;
+        modifiers = 0;
+        virtualKey = 0;
         var keyFound = false;
-
-        foreach (var part in gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            switch (part.ToLowerInvariant())
-            {
-                case "alt":
-                case "ctrl":
-                case "control":
-                case "shift":
-                case "win":
-                    modifiers |= 1;
-                    break;
-                case "space":
-                case "enter":
-                case "tab":
-                case "esc":
-                case "escape":
-                    keyFound = true;
-                    break;
-                default:
-                    if (part.Length == 1 && char.IsAsciiLetterOrDigit(part[0]))
-                    {
-                        keyFound = true;
-                    }
-                    else if (part.Length is >= 2 and <= 3
-                             && (part[0] is 'F' or 'f')
-                             && int.TryParse(part[1..], out var functionKey)
-                             && functionKey is >= 1 and <= 24)
-                    {
-                        keyFound = true;
-                    }
-                    else if (SymbolKeys.ContainsKey(part))
-                    {
-                        keyFound = true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    break;
-            }
-        }
-
-        return modifiers != 0 && keyFound;
-    }
-
-    private static (uint Modifiers, uint VirtualKey) ParseGesture(string gesture)
-    {
-        uint modifiers = 0;
-        uint virtualKey = 0x20; // Space
 
         foreach (var part in gesture.Split('+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
@@ -161,21 +138,26 @@ public sealed class GlobalHotkey : IDisposable
                     break;
                 case "space":
                     virtualKey = 0x20;
+                    keyFound = true;
                     break;
                 case "enter":
                     virtualKey = 0x0D;
+                    keyFound = true;
                     break;
                 case "tab":
                     virtualKey = 0x09;
+                    keyFound = true;
                     break;
                 case "esc":
                 case "escape":
                     virtualKey = 0x1B;
+                    keyFound = true;
                     break;
                 default:
                     if (part.Length == 1 && char.IsAsciiLetterOrDigit(part[0]))
                     {
                         virtualKey = char.ToUpperInvariant(part[0]);
+                        keyFound = true;
                     }
                     else if (part.Length is >= 2 and <= 3
                              && (part[0] is 'F' or 'f')
@@ -183,17 +165,23 @@ public sealed class GlobalHotkey : IDisposable
                              && functionKey is >= 1 and <= 24)
                     {
                         virtualKey = (uint)(0x6F + functionKey);
+                        keyFound = true;
                     }
                     else if (SymbolKeys.TryGetValue(part, out var symbolVk))
                     {
                         virtualKey = symbolVk;
+                        keyFound = true;
+                    }
+                    else
+                    {
+                        return false;
                     }
 
                     break;
             }
         }
 
-        return (modifiers, virtualKey);
+        return keyFound;
     }
 
     [StructLayout(LayoutKind.Sequential)]
