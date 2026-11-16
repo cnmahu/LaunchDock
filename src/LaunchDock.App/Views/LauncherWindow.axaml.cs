@@ -39,6 +39,7 @@ public partial class LauncherWindow : Window
     private ItemViewModel? _dragCandidate;
     private Point _dragStart;
     private bool _isLocked;
+    private bool _isPinned;
     private bool _suppressSnap;
     private bool _suppressHide;
     private bool _ctrlDown;
@@ -167,7 +168,7 @@ public partial class LauncherWindow : Window
 
     public void ApplySettings()
     {
-        Topmost = _config.Settings.TopMost;
+        Topmost = _isPinned || _config.Settings.TopMost;
         SettingsViewModel.ApplyFont(_config.Settings);
         _viewModel.ApplySettings(_config.Settings);
         ApplyLayout();
@@ -547,6 +548,18 @@ public partial class LauncherWindow : Window
 
     private void OnSearchClick(object? sender, RoutedEventArgs e) => BeginSearch();
 
+    private void OnPinClick(object? sender, RoutedEventArgs e) => SetPinned(!_isPinned);
+
+    /// <summary>钉住后面板失去焦点也不收起，并临时置顶，方便从桌面或资源管理器拖入文件。</summary>
+    private void SetPinned(bool pinned)
+    {
+        _isPinned = pinned;
+        PinGlyph.Text = pinned ? "\uE77A" : "\uE718";
+        PinGlyph.Classes.Set("pinned", pinned);
+        ToolTip.SetTip(PinButton, pinned ? "取消钉住" : "钉住面板（拖拽文件时保持显示）");
+        Topmost = pinned || _config.Settings.TopMost;
+    }
+
     private void OnCloseSearchClick(object? sender, RoutedEventArgs e) => EndSearch();
 
     private void OnTabClick(object? sender, RoutedEventArgs e)
@@ -581,6 +594,29 @@ public partial class LauncherWindow : Window
     {
         _viewModel.Notes.AddNote();
         Dispatcher.UIThread.Post(() => NoteTextBox.Focus(), DispatcherPriority.Input);
+    }
+
+    private async void OnRenameNoteClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { DataContext: NoteItem note })
+        {
+            return;
+        }
+
+        _suppressHide = true;
+        try
+        {
+            var dialog = new PromptWindow("重命名便签", "输入新的名称", note.Title);
+            var result = await dialog.ShowDialog<string?>(this);
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                _viewModel.Notes.RenameNote(note, result);
+            }
+        }
+        finally
+        {
+            _suppressHide = false;
+        }
     }
 
     private void OnAddTabClick(object? sender, RoutedEventArgs e)
@@ -622,7 +658,7 @@ public partial class LauncherWindow : Window
         }
     }
 
-    private async void OnNewLiveFolderTabClick(object? sender, RoutedEventArgs e)
+    private async void OnAddLiveFolderTabClick(object? sender, RoutedEventArgs e)
     {
         var folder = await PickFolderAsync();
         if (string.IsNullOrWhiteSpace(folder))
@@ -632,6 +668,67 @@ public partial class LauncherWindow : Window
 
         _viewModel.AddLiveFolderTab(folder);
         SaveConfig();
+    }
+
+    private void OnTabStripDragOver(object? sender, DragEventArgs e)
+    {
+#pragma warning disable CS0618
+        if (!e.Data.Contains(DataFormats.Files))
+#pragma warning restore CS0618
+        {
+            return;
+        }
+
+        e.DragEffects = DragDropEffects.Copy;
+        e.Handled = true;
+    }
+
+    private void OnTabStripDrop(object? sender, DragEventArgs e)
+    {
+        // 拖到分组栏上的文件夹直接生成实时文件夹；其它文件交给窗口级处理（添加到当前分组）
+        var folders = GetDroppedPaths(e).Where(Directory.Exists).ToList();
+        if (folders.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var folder in folders)
+        {
+            _viewModel.AddLiveFolderTab(folder);
+        }
+
+        SaveConfig();
+        e.Handled = true;
+    }
+
+    private async void OnItemsDrop(object? sender, DragEventArgs e)
+    {
+        // 实时文件夹是磁盘目录的镜像：拖进来的文件复制进源目录，由监视器触发刷新
+        if (_viewModel.SelectedTab is not { IsLiveFolder: true } tab)
+        {
+            return;
+        }
+
+        var paths = GetDroppedPaths(e);
+        if (paths.Count == 0)
+        {
+            return;
+        }
+
+        e.Handled = true;
+        await _viewModel.CopyIntoLiveFolderAsync(tab, paths);
+    }
+
+    private static List<string> GetDroppedPaths(DragEventArgs e)
+    {
+#pragma warning disable CS0618
+        return e.Data.GetFiles()?
+                   .Select(file => file.TryGetLocalPath())
+                   .Where(path => !string.IsNullOrWhiteSpace(path))
+                   .Cast<string>()
+                   .ToList()
+               ?? new List<string>();
+#pragma warning restore CS0618
     }
 
     private void OnRefreshLiveFolderClick(object? sender, RoutedEventArgs e)
@@ -762,6 +859,9 @@ public partial class LauncherWindow : Window
         item.Model.LastUsed = DateTime.Now;
         SaveConfig();
 
+        // 按使用频率排序时，刚打开的项目立即前移
+        _viewModel.RefreshItemsOrder();
+
         if (_config.Settings.HideAfterLaunch)
         {
             Dispatcher.UIThread.Post(HidePanel, DispatcherPriority.Background);
@@ -812,15 +912,25 @@ public partial class LauncherWindow : Window
             return;
         }
 
+        var isLive = item.IsLive;
         _suppressHide = true;
         try
         {
-            var dialog = new PromptWindow("重命名项目", "输入新的显示名称", item.Name);
+            var dialog = isLive
+                ? new PromptWindow("重命名", "输入新的名称（会同时重命名源文件夹中的文件）", item.Name)
+                : new PromptWindow("重命名项目", "输入新的显示名称", item.Name);
             var result = await dialog.ShowDialog<string?>(this);
             if (!string.IsNullOrWhiteSpace(result))
             {
-                _viewModel.RenameItem(item, result);
-                SaveConfig();
+                if (isLive)
+                {
+                    _viewModel.RenameLiveItem(item, result);
+                }
+                else
+                {
+                    _viewModel.RenameItem(item, result);
+                    SaveConfig();
+                }
             }
         }
         finally
@@ -829,12 +939,35 @@ public partial class LauncherWindow : Window
         }
     }
 
-    private void OnItemDeleteClick(object? sender, RoutedEventArgs e)
+    private async void OnItemDeleteClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is MenuItem { DataContext: ItemViewModel item })
+        if (sender is not MenuItem { DataContext: ItemViewModel item })
+        {
+            return;
+        }
+
+        if (!item.IsLive)
         {
             _viewModel.RemoveItem(item);
             SaveConfig();
+            return;
+        }
+
+        _suppressHide = true;
+        try
+        {
+            var dialog = new ConfirmWindow(
+                "删除文件",
+                $"确定要删除“{item.Name}”吗？\n文件会被移入回收站，源文件夹将同步刷新。",
+                "删除");
+            if (await dialog.ShowDialog<bool>(this))
+            {
+                _viewModel.DeleteLiveItem(item);
+            }
+        }
+        finally
+        {
+            _suppressHide = false;
         }
     }
 
@@ -846,7 +979,7 @@ public partial class LauncherWindow : Window
         }
 
         var point = e.GetCurrentPoint(this);
-        if (point.Properties.IsLeftButtonPressed && item.CanEdit)
+        if (point.Properties.IsLeftButtonPressed && item.CanEdit && !_config.Settings.AutoSortByUsage)
         {
             _dragCandidate = item;
             _dragStart = point.Position;
@@ -1230,6 +1363,11 @@ public partial class LauncherWindow : Window
     {
         _viewModel.Notes.SaveNow();
 
+        if (_isPinned)
+        {
+            SetPinned(false);
+        }
+
         if (_config.Settings.AutoLock && !string.IsNullOrWhiteSpace(_config.Settings.LockPasswordHash))
         {
             _isLocked = true;
@@ -1307,6 +1445,12 @@ public partial class LauncherWindow : Window
 
     private void OnDeactivated(object? sender, EventArgs e)
     {
+        // 钉住时保持显示，方便回桌面拖拽文件
+        if (_isPinned)
+        {
+            return;
+        }
+
         // 没有可用的全局热键时不自动隐藏，否则用户无法再把面板叫回来。
         if (!_config.Settings.HideOnLostFocus || _hotkey?.IsRegistered != true)
         {

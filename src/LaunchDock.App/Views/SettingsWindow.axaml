@@ -500,6 +500,23 @@
               </Border>
 
               <Border Classes="card">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
+                  <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE8CB;" />
+                  <StackPanel Grid.Column="1" Margin="12,0" Spacing="2">
+                    <TextBlock Classes="rowTitle" Text="图标排序" />
+                    <TextBlock Classes="rowHint" Text="按使用次数从多到少自动排列" />
+                  </StackPanel>
+                  <ComboBox Grid.Column="2"
+                            Width="180"
+                            VerticalAlignment="Center"
+                            SelectedIndex="{Binding SortModeIndex}">
+                    <ComboBoxItem Content="保持手动顺序" />
+                    <ComboBoxItem Content="按使用频率" />
+                  </ComboBox>
+                </Grid>
+              </Border>
+
+              <Border Classes="card">
                 <StackPanel>
                   <Grid ColumnDefinitions="Auto,*,Auto" Margin="16,13">
                     <TextBlock Grid.Column="0" Classes="rowIcon" Text="&#xE70D;" />

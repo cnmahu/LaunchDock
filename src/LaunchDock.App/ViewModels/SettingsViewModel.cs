@@ -559,6 +559,24 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
+    /// <summary>图标排序：0 保持手动顺序，1 按使用频率从多到少。</summary>
+    public int SortModeIndex
+    {
+        get => _settings.AutoSortByUsage ? 1 : 0;
+        set
+        {
+            var target = value == 1;
+            if (_settings.AutoSortByUsage == target)
+            {
+                return;
+            }
+
+            _settings.AutoSortByUsage = target;
+            OnPropertyChanged();
+            _onChanged();
+        }
+    }
+
     public bool ShowOnXButton1
     {
         get => _settings.ShowOnXButton1;

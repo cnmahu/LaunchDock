@@ -42,8 +42,8 @@
             <MenuItem Header="以管理员身份运行" Click="OnItemRunAsAdminClick" />
             <MenuItem Header="打开文件位置" Click="OnItemOpenLocationClick" />
             <MenuItem Header="复制路径" Click="OnItemCopyPathClick" />
-            <MenuItem Header="重命名" Click="OnItemRenameClick" IsVisible="{Binding CanEdit}" />
-            <MenuItem Header="删除" Click="OnItemDeleteClick" IsVisible="{Binding CanEdit}" />
+            <MenuItem Header="重命名" Click="OnItemRenameClick" />
+            <MenuItem Header="删除" Click="OnItemDeleteClick" />
           </ContextMenu>
         </Border.ContextMenu>
         <StackPanel VerticalAlignment="Center"
@@ -101,8 +101,8 @@
             <MenuItem Header="以管理员身份运行" Click="OnItemRunAsAdminClick" />
             <MenuItem Header="打开文件位置" Click="OnItemOpenLocationClick" />
             <MenuItem Header="复制路径" Click="OnItemCopyPathClick" />
-            <MenuItem Header="重命名" Click="OnItemRenameClick" IsVisible="{Binding CanEdit}" />
-            <MenuItem Header="删除" Click="OnItemDeleteClick" IsVisible="{Binding CanEdit}" />
+            <MenuItem Header="重命名" Click="OnItemRenameClick" />
+            <MenuItem Header="删除" Click="OnItemDeleteClick" />
           </ContextMenu>
         </Border.ContextMenu>
         <Grid ColumnDefinitions="Auto,*" Margin="10,0">
@@ -135,6 +135,15 @@
     </DataTemplate>
   </Window.Resources>
 
+  <Window.Styles>
+    <Style Selector="TextBlock#PinGlyph">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+    </Style>
+    <Style Selector="TextBlock#PinGlyph.pinned">
+      <Setter Property="Foreground" Value="{DynamicResource Accent}" />
+    </Style>
+  </Window.Styles>
+
   <Border x:Name="RootBorder"
           CornerRadius="10"
           ClipToBounds="True"
@@ -162,6 +171,17 @@
                     VerticalAlignment="Center"
                     Orientation="Horizontal"
                     Spacing="2">
+
+          <Button x:Name="PinButton"
+                  Classes="chrome"
+                  Focusable="False"
+                  ToolTip.Tip="钉住面板（拖拽文件时保持显示）"
+                  Click="OnPinClick">
+            <TextBlock x:Name="PinGlyph"
+                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       FontSize="{DynamicResource Fs13}"
+                       Text="&#xE718;" />
+          </Button>
 
           <Button Classes="chrome" Focusable="False" ToolTip.Tip="搜索 (Ctrl+F)" Click="OnSearchClick">
             <Grid Width="16" Height="16">
@@ -239,10 +259,23 @@
           </Grid>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="8,0">
+        <Grid Grid.Row="1"
+              ColumnDefinitions="*,Auto"
+              Margin="8,0"
+              Background="Transparent"
+              DragDrop.AllowDrop="True"
+              DragDrop.DragOver="OnTabStripDragOver"
+              DragDrop.Drop="OnTabStripDrop">
           <ScrollViewer Grid.Column="0"
+                        Background="Transparent"
                         HorizontalScrollBarVisibility="Auto"
                         VerticalScrollBarVisibility="Disabled">
+            <ScrollViewer.ContextMenu>
+              <ContextMenu>
+                <MenuItem Header="添加分组" Click="OnAddTabClick" />
+                <MenuItem Header="添加实时文件夹" Click="OnAddLiveFolderTabClick" />
+              </ContextMenu>
+            </ScrollViewer.ContextMenu>
             <StackPanel Orientation="Horizontal" Spacing="2">
               <ItemsControl ItemsSource="{Binding Tabs}">
                 <ItemsControl.ItemsPanel>
@@ -258,9 +291,6 @@
                             Click="OnTabClick">
                       <Button.ContextMenu>
                         <ContextMenu>
-                          <MenuItem Header="新建文件夹分组"
-                                    Click="OnNewLiveFolderTabClick"
-                                    IsVisible="{Binding !IsLiveFolder}" />
                           <MenuItem Header="刷新"
                                     Click="OnRefreshLiveFolderClick"
                                     IsVisible="{Binding IsLiveFolder}" />
@@ -278,11 +308,6 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-
-              <Button Classes="tab"
-                      Content="+"
-                      ToolTip.Tip="新建分组"
-                      Click="OnAddTabClick" />
             </StackPanel>
           </ScrollViewer>
 
@@ -304,6 +329,8 @@
                       IsVisible="{Binding !Notes.IsOpen}"
                       HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto"
+                      DragDrop.AllowDrop="True"
+                      DragDrop.Drop="OnItemsDrop"
                       DoubleTapped="OnEmptyDoubleTapped">
           <ScrollViewer.ContextMenu>
             <ContextMenu>
@@ -370,7 +397,13 @@
                     <TextBlock FontSize="{DynamicResource Fs13}"
                                Foreground="{DynamicResource TextPrimary}"
                                Text="{Binding Title}"
-                               TextTrimming="CharacterEllipsis" />
+                               TextTrimming="CharacterEllipsis">
+                      <TextBlock.ContextMenu>
+                        <ContextMenu>
+                          <MenuItem Header="重命名" Click="OnRenameNoteClick" />
+                        </ContextMenu>
+                      </TextBlock.ContextMenu>
+                    </TextBlock>
                   </DataTemplate>
                 </ListBox.ItemTemplate>
               </ListBox>
@@ -419,7 +452,7 @@
             <TextBlock HorizontalAlignment="Center"
                        FontSize="{DynamicResource Fs12}"
                        Foreground="{DynamicResource TextSecondary}"
-                       Text="点击上方 ＋ 新建分组，或把应用拖进来" />
+                       Text="在分组栏上右键即可新建分组，或把应用/文件夹拖进来" />
           </StackPanel>
         </Panel>
 

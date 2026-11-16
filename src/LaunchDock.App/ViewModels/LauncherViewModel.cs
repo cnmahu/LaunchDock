@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using Avalonia.Threading;
 using LaunchDock.Core.Model;
 using LaunchDock.Core.Storage;
+using LaunchDock.Windows.Interop;
 
 namespace LaunchDock.App.ViewModels;
 
@@ -138,6 +139,181 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
         tab.Model.SourcePath = folderPath;
         RefreshLiveFolder(tab);
         StartWatcher(tab);
+    }
+
+    /// <summary>把拖入的文件/文件夹复制进实时文件夹的源目录，重名时自动加序号。</summary>
+    public async Task<int> CopyIntoLiveFolderAsync(TabViewModel tab, IReadOnlyList<string> paths)
+    {
+        if (!tab.IsLiveFolder)
+        {
+            return 0;
+        }
+
+        var destination = tab.Model.SourcePath;
+        if (string.IsNullOrWhiteSpace(destination) || !Directory.Exists(destination))
+        {
+            return 0;
+        }
+
+        var copied = await Task.Run(() =>
+        {
+            var count = 0;
+            foreach (var path in paths)
+            {
+                try
+                {
+                    if (Directory.Exists(path))
+                    {
+                        // 源目录与目标目录互相包含时跳过，避免无限递归复制
+                        if (IsNested(path, destination))
+                        {
+                            continue;
+                        }
+
+                        CopyDirectory(path, MakeUniquePath(destination, Path.GetFileName(path), isDirectory: true));
+                        count++;
+                    }
+                    else if (File.Exists(path))
+                    {
+                        if (IsNested(path, destination))
+                        {
+                            continue;
+                        }
+
+                        File.Copy(path, MakeUniquePath(destination, Path.GetFileName(path), isDirectory: false), overwrite: false);
+                        count++;
+                    }
+                }
+                catch
+                {
+                    // 单个条目复制失败不影响其它条目
+                }
+            }
+
+            return count;
+        });
+
+        RefreshLiveFolder(tab);
+        return copied;
+    }
+
+    /// <summary>重命名实时文件夹里的条目，直接作用于源目录中的文件。</summary>
+    public bool RenameLiveItem(ItemViewModel item, string name)
+    {
+        var tab = FindLiveTabOf(item);
+        if (tab is null)
+        {
+            return false;
+        }
+
+        var newName = name.Trim();
+        var source = item.Model.Target;
+        var parent = Path.GetDirectoryName(source);
+        if (newName.Length == 0
+            || newName == item.Name
+            || newName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+            || string.IsNullOrWhiteSpace(parent))
+        {
+            return false;
+        }
+
+        var destination = Path.Combine(parent, newName);
+        if (PathExists(destination))
+        {
+            return false;
+        }
+
+        try
+        {
+            if (Directory.Exists(source))
+            {
+                Directory.Move(source, destination);
+            }
+            else if (File.Exists(source))
+            {
+                File.Move(source, destination);
+            }
+            else
+            {
+                return false;
+            }
+        }
+        catch
+        {
+            return false;
+        }
+
+        RefreshLiveFolder(tab);
+        return true;
+    }
+
+    /// <summary>把实时文件夹里的条目移入回收站，并刷新分组。</summary>
+    public bool DeleteLiveItem(ItemViewModel item)
+    {
+        var tab = FindLiveTabOf(item);
+        if (tab is null)
+        {
+            return false;
+        }
+
+        if (!RecycleBin.Delete(item.Model.Target))
+        {
+            return false;
+        }
+
+        RefreshLiveFolder(tab);
+        return true;
+    }
+
+    private TabViewModel? FindLiveTabOf(ItemViewModel item) =>
+        Tabs.FirstOrDefault(tab => tab.IsLiveFolder && tab.Items.Contains(item));
+
+    private static bool IsNested(string path, string folder)
+    {
+        var fullPath = Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var fullFolder = Path.GetFullPath(folder).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+        return fullPath.Equals(fullFolder, StringComparison.OrdinalIgnoreCase)
+               || fullPath.StartsWith(fullFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+               || fullFolder.StartsWith(fullPath + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string MakeUniquePath(string directory, string name, bool isDirectory)
+    {
+        var target = Path.Combine(directory, name);
+        if (!PathExists(target))
+        {
+            return target;
+        }
+
+        var stem = isDirectory ? name : Path.GetFileNameWithoutExtension(name);
+        var extension = isDirectory ? string.Empty : Path.GetExtension(name);
+
+        for (var i = 2; ; i++)
+        {
+            target = Path.Combine(directory, $"{stem} ({i}){extension}");
+            if (!PathExists(target))
+            {
+                return target;
+            }
+        }
+    }
+
+    private static bool PathExists(string path) => File.Exists(path) || Directory.Exists(path);
+
+    private static void CopyDirectory(string source, string destination)
+    {
+        Directory.CreateDirectory(destination);
+
+        foreach (var file in Directory.EnumerateFiles(source))
+        {
+            File.Copy(file, Path.Combine(destination, Path.GetFileName(file)), overwrite: false);
+        }
+
+        foreach (var directory in Directory.EnumerateDirectories(source))
+        {
+            CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory)));
+        }
     }
 
     public void RefreshLiveFolder(TabViewModel tab)
@@ -363,7 +539,12 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
         {
             ApplyAppearance(item);
         }
+
+        UpdateVisibleItems();
     }
+
+    /// <summary>使用次数变化后刷新排序。</summary>
+    public void RefreshItemsOrder() => UpdateVisibleItems();
 
     private void ApplyAppearance(ItemViewModel item)
     {
@@ -627,7 +808,22 @@ public sealed class LauncherViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        foreach (var item in SelectedTab.Items)
+        var items = SelectedTab.Items;
+
+        // 实时文件夹保持目录本身顺序；普通分组可按使用频率由多到少排列
+        if (!SelectedTab.IsLiveFolder && Config.Settings.AutoSortByUsage)
+        {
+            foreach (var item in items
+                         .OrderByDescending(item => item.Model.UseCount)
+                         .ThenBy(item => item.Model.Order))
+            {
+                VisibleItems.Add(item);
+            }
+
+            return;
+        }
+
+        foreach (var item in items)
         {
             VisibleItems.Add(item);
         }
