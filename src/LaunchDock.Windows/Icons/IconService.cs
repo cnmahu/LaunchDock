@@ -147,7 +147,7 @@ public static class IconService
         }
 
         var key = Convert.ToHexString(SHA1.HashData(
-            Encoding.UTF8.GetBytes($"{resolved.ToLowerInvariant()}|{stamp}|256|v3"))).ToLowerInvariant();
+            Encoding.UTF8.GetBytes($"{resolved.ToLowerInvariant()}|{stamp}|256|v4"))).ToLowerInvariant();
 
         var pngPath = Path.Combine(CacheDirectory, key + ".png");
         return File.Exists(pngPath) ? (resolved, pngPath, pngPath) : (resolved, null, pngPath);

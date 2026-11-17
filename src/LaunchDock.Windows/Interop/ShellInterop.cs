@@ -6,6 +6,7 @@ internal static class ShellInterop
 {
     public const uint ShgfiIcon = 0x000000100;
     public const uint ShgfiLargeIcon = 0x000000000;
+    public const uint ShgfiIconLocation = 0x000000200;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct Size
@@ -88,4 +89,32 @@ internal static class ShellInterop
 
     [DllImport("user32.dll")]
     public static extern bool DestroyIcon(IntPtr hIcon);
+
+    /// <summary>
+    /// 按指定尺寸提取文件图标：会把最接近的图标帧缩放到请求尺寸，
+    /// 而 IShellItemImageFactory::GetImage 只会原尺寸居中、不放大。
+    /// </summary>
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern uint PrivateExtractIcons(
+        string fileName,
+        int iconIndex,
+        int cxIcon,
+        int cyIcon,
+        IntPtr[]? phicon,
+        int[]? piconid,
+        uint count,
+        uint flags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IconInfo
+    {
+        public int IsIcon;
+        public int XHotspot;
+        public int YHotspot;
+        public IntPtr MaskBitmap;
+        public IntPtr ColorBitmap;
+    }
+
+    [DllImport("user32.dll")]
+    public static extern bool GetIconInfo(IntPtr hIcon, ref IconInfo info);
 }
